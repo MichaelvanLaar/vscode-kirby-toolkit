@@ -1,0 +1,105 @@
+{
+  "name": "kirby-cms-developer-toolkit",
+  "displayName": "Kirby CMS Developer Toolkit",
+  "description": "Productivity tools for Kirby CMS development: type-hints, Blueprint validation, and snippet navigation",
+  "version": "0.1.0",
+  "publisher": "kirby-dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MichaelvanLaar/vscode-kirby-toolkit"
+  },
+  "bugs": {
+    "url": "https://github.com/MichaelvanLaar/vscode-kirby-toolkit/issues"
+  },
+  "engines": {
+    "vscode": "^1.105.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Other"
+  ],
+  "keywords": [
+    "kirby",
+    "kirby cms",
+    "php",
+    "yaml",
+    "blueprints"
+  ],
+  "activationEvents": [
+    "onLanguage:php",
+    "onLanguage:yaml",
+    "workspaceContains:site/"
+  ],
+  "main": "./out/extension.js",
+  "extensionDependencies": [
+    "redhat.vscode-yaml"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "kirby.addTypeHints",
+        "title": "Kirby: Add Type Hints"
+      }
+    ],
+    "configuration": {
+      "title": "Kirby CMS Developer Toolkit",
+      "properties": {
+        "kirby.autoInjectTypeHints": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically inject PHPDoc type hints when creating new template or snippet files"
+        },
+        "kirby.typeHintVariables": {
+          "type": "array",
+          "default": ["$page", "$site", "$kirby"],
+          "description": "Variables to include in the PHPDoc type hint block",
+          "items": {
+            "type": "string"
+          }
+        },
+        "kirby.enableBlueprintValidation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable JSON Schema validation for Kirby Blueprint files"
+        },
+        "kirby.blueprintSchemaPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to custom Blueprint JSON Schema (leave empty to use bundled schema)"
+        },
+        "kirby.showSnippetCodeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show CodeLens links above snippet() calls for quick navigation"
+        }
+      }
+    },
+    "yamlValidation": [
+      {
+        "fileMatch": "**/site/blueprints/**/*.yml",
+        "url": "./out/schemas/blueprint.schema.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./ && npm run copy-schemas",
+    "copy-schemas": "mkdir -p out/schemas && cp src/schemas/*.json out/schemas/",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.105.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@typescript-eslint/eslint-plugin": "^8.45.0",
+    "@typescript-eslint/parser": "^8.45.0",
+    "eslint": "^9.36.0",
+    "typescript": "^5.9.3",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2"
+  }
+}

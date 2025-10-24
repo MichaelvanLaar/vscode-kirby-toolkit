@@ -1,0 +1,195 @@
+# Kirby CMS Developer Toolkit
+
+A Visual Studio Code extension that enhances productivity for Kirby CMS developers by providing type-hints, Blueprint validation, and intelligent snippet navigation.
+
+## Features
+
+### 1. Automatic Type-Hint Injection
+
+Automatically inject PHPDoc type hints for Kirby's global variables (`$page`, `$site`, `$kirby`) in template and snippet files.
+
+**Features:**
+- ✨ Automatic injection when creating new template or snippet files
+- 🎯 Manual injection via command: `Kirby: Add Type Hints`
+- ⚙️ Configurable variable list
+- 🔍 IntelliSense support with Intelephense
+
+**Usage:**
+- Create a new PHP file in `site/templates/` or `site/snippets/` - type hints are added automatically
+- For existing files, use the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run `Kirby: Add Type Hints`
+
+### 2. Blueprint Schema Validation
+
+JSON Schema validation and auto-completion for Kirby Blueprint YAML files.
+
+**Features:**
+- ✅ Real-time validation of Blueprint syntax
+- 💡 Auto-completion for field types, sections, and options
+- 📝 Inline documentation and hints
+- 🎨 Syntax highlighting for Blueprint-specific keys
+
+**How it works:**
+- Open any `.yml` file in `site/blueprints/`
+- Get instant validation and auto-completion powered by the official Kirby Blueprint schema
+
+**Schema Attribution:**
+This extension bundles the [Kirby Blueprint JSON Schema](https://github.com/bnomei/kirby-schema) by [bnomei](https://github.com/bnomei), licensed under MIT.
+
+### 3. Snippet Navigation
+
+Quickly navigate from `snippet()` function calls to their corresponding snippet files.
+
+**Features:**
+- 🔗 CodeLens links above `snippet()` calls
+- ⚡ Go-to-Definition support (F12, Ctrl+Click)
+- 👁️ Peek Definition support
+- 🗂️ Support for nested snippets (e.g., `snippet('partials/menu')`)
+
+**Usage:**
+- Click the "Open Snippet" link above any `snippet()` call
+- Or use F12 / Ctrl+Click (Cmd+Click on macOS) on the snippet name
+- Works in both templates and snippets
+
+## Requirements
+
+- **VS Code**: Version 1.105.0 or higher
+- **Kirby CMS project**: Extension detects and activates only in workspaces containing a `site/` directory
+- **YAML extension**: The [Red Hat YAML extension](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) is required for Blueprint validation (automatically installed as dependency)
+
+## Extension Settings
+
+This extension contributes the following settings:
+
+* `kirby.autoInjectTypeHints`: Enable/disable automatic type-hint injection on file creation (default: `true`)
+* `kirby.typeHintVariables`: Array of variable names to include in type-hint blocks (default: `["$page", "$site", "$kirby"]`)
+* `kirby.enableBlueprintValidation`: Enable/disable Blueprint JSON Schema validation (default: `true`)
+* `kirby.blueprintSchemaPath`: Path to custom Blueprint JSON Schema file (leave empty to use bundled schema)
+* `kirby.showSnippetCodeLens`: Show/hide CodeLens links above snippet() calls (default: `true`)
+
+## Installation
+
+### From VSIX (Development/Testing)
+
+1. Download the `.vsix` file
+2. Open VS Code
+3. Go to Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`)
+4. Click the "..." menu at the top of the Extensions view
+5. Select "Install from VSIX..."
+6. Choose the downloaded `.vsix` file
+
+### From Marketplace (Coming Soon)
+
+Search for "Kirby CMS Developer Toolkit" in the VS Code Extensions Marketplace.
+
+## Usage Tips
+
+### Type Hints
+
+**Customizing Type-Hint Variables:**
+
+```json
+{
+  "kirby.typeHintVariables": ["$page", "$site", "$kirby", "$pages"]
+}
+```
+
+**Disabling Automatic Injection:**
+
+If you prefer to add type hints manually:
+
+```json
+{
+  "kirby.autoInjectTypeHints": false
+}
+```
+
+Then use the command `Kirby: Add Type Hints` when needed.
+
+### Blueprint Validation
+
+The extension uses the Kirby 4 Blueprint schema by default. If you're working with custom Blueprint extensions or need a different schema version:
+
+```json
+{
+  "kirby.blueprintSchemaPath": "/path/to/custom/schema.json"
+}
+```
+
+### Snippet Navigation
+
+**Disabling CodeLens:**
+
+If you find CodeLens links distracting but still want F12 navigation:
+
+```json
+{
+  "kirby.showSnippetCodeLens": false
+}
+```
+
+## Known Issues
+
+- **Custom Kirby directory structures**: MVP version only supports the standard `site/` directory structure
+- **Regex-based PHP parsing**: Snippet detection uses regex which may produce false positives in edge cases (e.g., snippet calls in comments)
+- **Blueprint schema extends**: The `extends` property in Blueprints cannot be fully validated as it references external files
+
+## Roadmap
+
+Planned features for future releases:
+
+- **Bidirectional snippet navigation**: Navigate from snippet files back to templates that use them
+- **Controller file support**: Type-hint injection for controller files
+- **Template navigation**: Jump from Blueprint files to their corresponding templates
+- **Field completion**: Auto-complete field names from Blueprints in templates
+- **Tailwind CSS integration**: Configure Tailwind class completion in PHP files
+
+## Contributing
+
+Contributions are welcome! This project is open source.
+
+### Development Setup
+
+1. Clone the repository
+2. Run `npm install`
+3. Open in VS Code
+4. Press F5 to launch Extension Development Host
+5. Test your changes
+
+### Building
+
+```bash
+npm run compile      # Compile TypeScript
+npm run watch        # Watch mode for development
+npm run lint         # Run ESLint
+npm run test         # Run tests
+```
+
+### Packaging
+
+```bash
+npm install -g @vscode/vsce
+vsce package
+```
+
+## License
+
+This extension is licensed under the MIT License.
+
+### Bundled Dependencies
+
+- **Kirby Blueprint JSON Schema**: [MIT License](https://github.com/bnomei/kirby-schema/blob/main/LICENSE) © [bnomei](https://github.com/bnomei)
+
+## Acknowledgments
+
+- [Kirby CMS](https://getkirby.com) - The amazing file-based CMS
+- [bnomei](https://github.com/bnomei) - For the Kirby Blueprint JSON Schema
+- The Kirby community for inspiration and feedback
+
+## Support
+
+- **Issues**: [Report bugs or request features](https://github.com/MichaelvanLaar/vscode-kirby-toolkit/issues)
+- **Kirby Forum**: Join the discussion at [forum.getkirby.com](https://forum.getkirby.com)
+
+---
+
+**Enjoy developing with Kirby CMS!** 🚀
