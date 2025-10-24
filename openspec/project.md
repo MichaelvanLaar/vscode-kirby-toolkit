@@ -12,26 +12,35 @@ The **Kirby CMS Developer Toolkit** is a Visual Studio Code extension designed t
 
 ## Tech Stack
 
-- **Extension Development**: TypeScript with VS Code Extension API
+- **Extension Development**: TypeScript 5.9.3 with VS Code Extension API (^1.105.0)
 - **Target Platform**: Kirby CMS (PHP-based, file-based CMS)
-- **Build Tools**: Webpack or esbuild (via VS Code extension scaffold)
-- **Testing**: VS Code Extension Test Runner, Mocha
+- **Build Tools**: Native TypeScript compiler (tsc) with custom schema copy step
+- **Linting**: ESLint 9.36.0 with @typescript-eslint plugin
+- **Testing**: VS Code Extension Test Runner (@vscode/test-cli, @vscode/test-electron), Mocha
 - **Integrated Technologies**:
   - YAML (for Kirby Blueprint files)
-  - JSON Schema (for YAML validation)
+  - JSON Schema (Kirby Blueprint schema by bnomei, MIT licensed)
   - PHP (parsing snippet() calls, injecting PHPDoc)
+- **Repository**: https://github.com/MichaelvanLaar/vscode-kirby-toolkit
 
 ## Project Conventions
 
 ### Code Style
 
-- **Language**: TypeScript with strict type checking enabled
-- **Formatting**: Prettier with default settings (2-space indentation, single quotes, trailing commas)
+- **Language**: TypeScript with strict type checking enabled (tsconfig.json: strict: true, target: ES2022)
+- **Module System**: Node16 module resolution
+- **Formatting**: No Prettier configured; follow ESLint rules (2-space indentation via default, semicolons required)
+- **ESLint Rules**:
+  - Naming convention enforced for imports (camelCase/PascalCase)
+  - Curly braces required for control structures
+  - Strict equality (===) required
+  - No throw literals
+  - Semicolons required
 - **Naming**:
-  - Files: `camelCase.ts` for utilities, `PascalCase.ts` for providers/classes
+  - Files: `camelCase.ts` for utilities (e.g., kirbyProject.ts, phpParser.ts)
   - Functions: `camelCase` for functions and methods
   - Classes: `PascalCase` for class names
-  - Constants: `UPPER_SNAKE_CASE` for immutable constants
+  - Constants: Follow context (UPPER_SNAKE_CASE for true constants)
 - **Imports**: Organize imports (third-party → VS Code API → local modules)
 - **Documentation**: Use JSDoc comments for public APIs and complex logic
 
@@ -40,9 +49,16 @@ The **Kirby CMS Developer Toolkit** is a Visual Studio Code extension designed t
 - **Provider Pattern**: Use VS Code provider interfaces (CodeLensProvider, DefinitionProvider) for language features
 - **Dependency Injection**: Pass configuration and utilities as parameters rather than global state
 - **Single Responsibility**: Each provider/module handles one feature or concern
-- **Utilities Separation**: Pure functions for path resolution, parsing, and detection in `utils/` directory
+- **Directory Structure**:
+  - `src/extension.ts` - Main entry point with activate()/deactivate()
+  - `src/config/` - Configuration access (settings.ts)
+  - `src/providers/` - Language feature providers (CodeLens, Definition, type hints)
+  - `src/utils/` - Pure utility functions (kirbyProject.ts, phpParser.ts)
+  - `src/schemas/` - JSON Schema files for Blueprint validation
+  - `src/test/` - Test files
 - **Configuration Access**: Centralize VS Code settings access in `config/settings.ts`
 - **Extension Lifecycle**: Follow standard VS Code extension pattern with `activate()` and `deactivate()` functions
+- **Build Process**: TypeScript compilation + schema file copying to `out/` directory
 
 ### Testing Strategy
 
@@ -54,14 +70,16 @@ The **Kirby CMS Developer Toolkit** is a Visual Studio Code extension designed t
 
 ### Git Workflow
 
+- **Repository**: git@github.com:MichaelvanLaar/vscode-kirby-toolkit.git
 - **Branching**:
   - `main` branch for stable releases
   - Feature branches: `feature/description` (e.g., `feature/type-hint-injection`)
   - Bugfix branches: `fix/issue-number-description`
 - **Commits**:
-  - Follow Conventional Commits format: `type(scope): description`
-  - Types: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`
-  - Example: `feat(type-hints): add automatic PHPDoc injection on file creation`
+  - Follow descriptive commit messages with context
+  - Include Claude Code attribution: "🤖 Generated with [Claude Code](https://claude.com/claude-code)"
+  - Include co-author: "Co-Authored-By: Claude <noreply@anthropic.com>"
+  - Example format from initial commit shows multi-paragraph descriptions
 - **Pull Requests**: Each PR should correspond to one OpenSpec change proposal
 - **Code Review**: Required before merging feature branches
 
@@ -91,11 +109,12 @@ The **Kirby CMS Developer Toolkit** is a Visual Studio Code extension designed t
 
 ### Technical Constraints
 
-- **VS Code API Compatibility**: Must work with VS Code version 1.70.0+ (check specific API availability)
-- **PHP Parsing Limitations**: Use simple regex-based parsing for MVP; full PHP AST parsing out of scope
+- **VS Code API Compatibility**: Requires VS Code version 1.105.0 or higher (as specified in engines field)
+- **PHP Parsing Limitations**: Uses simple regex-based parsing for MVP; full PHP AST parsing out of scope
 - **No Kirby Runtime Dependency**: Extension cannot execute Kirby PHP code or call Kirby APIs
 - **Standard Kirby Structure Only**: MVP assumes default `site/` directory structure; custom configurations out of scope
-- **Offline Functionality**: Extension must work without internet connection (bundled schema)
+- **Offline Functionality**: Extension must work without internet connection (schema bundled in src/schemas/ and copied to out/schemas/)
+- **Extension Dependencies**: Requires RedHat YAML extension (redhat.vscode-yaml) for Blueprint validation
 
 ### Performance Constraints
 
@@ -119,15 +138,21 @@ The **Kirby CMS Developer Toolkit** is a Visual Studio Code extension designed t
 ### Optional Dependencies
 
 - **Intelephense** (bmewburn.vscode-intelephense-client): PHP language server that benefits from type-hints but not required by extension
-- **Kirby Blueprint JSON Schema**: Community schema (e.g., johannschopplich/kirby-types-blueprint) or custom-created schema
+- **Kirby Blueprint JSON Schema**: Using schema from bnomei/kirby-schema (MIT licensed), bundled in extension
 
 ### Build Dependencies
 
-- **TypeScript**: Compilation to JavaScript
-- **Webpack/esbuild**: Bundling extension code
-- **VS Code Extension Test Runner**: Integration testing
-- **Mocha**: Unit testing framework
-- **vsce**: VS Code Extension Manager for packaging and publishing
+- **TypeScript** (5.9.3): Compilation to JavaScript (ES2022 target)
+- **ESLint** (9.36.0) with TypeScript plugins: Code quality and style enforcement
+- **VS Code Extension Test Runner** (@vscode/test-cli, @vscode/test-electron): Integration testing
+- **Mocha** (10.0.10): Unit testing framework
+- **vsce**: VS Code Extension Manager for packaging and publishing (not in dependencies yet, install globally when needed)
+- **Build Scripts**:
+  - `npm run compile` - TypeScript compilation + schema copying
+  - `npm run watch` - Watch mode for development
+  - `npm run lint` - ESLint check
+  - `npm run test` - Run tests
+  - `npm run vscode:prepublish` - Pre-publish build step
 
 ## Notes for AI Assistants
 
