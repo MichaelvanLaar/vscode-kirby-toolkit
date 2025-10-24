@@ -90,12 +90,17 @@ export async function handleFileCreation(uri: vscode.Uri): Promise<void> {
     return;
   }
 
-  // Wait a bit for the file to be opened in the editor
-  await new Promise(resolve => setTimeout(resolve, 100));
+  try {
+    // Open the document - VS Code will wait until it's ready
+    const document = await vscode.workspace.openTextDocument(uri);
 
-  // Open the document
-  const document = await vscode.workspace.openTextDocument(uri);
-
-  // Inject type-hints
-  await injectTypeHints(document);
+    // Only inject if the document is empty or very small
+    // (to avoid overwriting existing content if file wasn't truly new)
+    if (document.getText().trim().length < 10) {
+      await injectTypeHints(document);
+    }
+  } catch (error) {
+    // Silently fail if document can't be opened
+    console.error('Failed to handle file creation for type hints:', error);
+  }
 }

@@ -72,9 +72,30 @@ export function isBlueprintFile(filePath: string): boolean {
 }
 
 /**
+ * Sanitizes a snippet name to prevent path traversal attacks
+ * @param snippetName The snippet name to sanitize
+ * @returns Sanitized snippet name or undefined if invalid
+ */
+function sanitizeSnippetName(snippetName: string): string | undefined {
+  if (!snippetName || typeof snippetName !== 'string') {
+    return undefined;
+  }
+
+  // Remove any path traversal attempts and normalize
+  const sanitized = path.normalize(snippetName).replace(/^(\.\.(\/|\\|$))+/, '');
+
+  // Ensure it doesn't start with / or contain absolute path indicators
+  if (path.isAbsolute(sanitized) || sanitized.includes('..')) {
+    return undefined;
+  }
+
+  return sanitized;
+}
+
+/**
  * Resolves a snippet name to its file path
  * @param snippetName Name of the snippet (e.g., 'header' or 'partials/menu')
- * @returns Absolute path to the snippet file, or undefined if workspace not found
+ * @returns Absolute path to the snippet file, or undefined if workspace not found or invalid name
  */
 export function resolveSnippetPath(snippetName: string): string | undefined {
   const workspaceRoot = getWorkspaceRoot();
@@ -82,7 +103,20 @@ export function resolveSnippetPath(snippetName: string): string | undefined {
     return undefined;
   }
 
-  const snippetPath = path.join(workspaceRoot, 'site', 'snippets', `${snippetName}.php`);
+  // Sanitize snippet name to prevent path traversal
+  const sanitized = sanitizeSnippetName(snippetName);
+  if (!sanitized) {
+    return undefined;
+  }
+
+  const snippetPath = path.join(workspaceRoot, 'site', 'snippets', `${sanitized}.php`);
+
+  // Additional security check: ensure the resolved path is within the snippets directory
+  const snippetsDir = path.join(workspaceRoot, 'site', 'snippets');
+  if (!snippetPath.startsWith(snippetsDir)) {
+    return undefined;
+  }
+
   return snippetPath;
 }
 
