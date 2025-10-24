@@ -62,11 +62,17 @@ The **Kirby CMS Developer Toolkit** is a Visual Studio Code extension designed t
 
 ### Testing Strategy
 
-- **Unit Tests**: Test pure utility functions (path resolution, snippet parsing) with Mocha
-- **Integration Tests**: Test VS Code API interactions using Extension Test Runner
-- **Coverage Target**: Aim for >80% code coverage for core logic
-- **Test Fixtures**: Maintain sample Kirby project structure in `test-fixtures/` for realistic testing
-- **Manual Testing**: Maintain checklist of manual test scenarios for each feature (see tasks.md section 8)
+- **Comprehensive Test Suite**: 36 tests covering all major functionality
+  - **Security Tests** (`src/test/security.test.ts`): Path traversal protection, input validation
+  - **Unit Tests** (`src/test/phpParser.test.ts`, `src/test/kirbyProject.test.ts`): Pure utility functions
+  - **Feature Tests** (`src/test/typeHints.test.ts`): Type hint generation and detection
+  - **Integration Tests** (`src/test/extension.test.ts`): VS Code API interactions, command registration
+- **Test Framework**: Mocha + VS Code Extension Test Runner (@vscode/test-cli, @vscode/test-electron)
+- **Test Execution**: All tests run via `npm test` (compile + lint + test suite)
+- **Current Status**: 36/36 tests passing (100% success rate)
+- **Automated Testing**: Pre-commit hooks via Husky ensure tests run before every commit
+- **Coverage Target**: >80% code coverage for core logic (currently focused on security-critical paths)
+- **Test Isolation**: Each test creates unique mock documents to avoid state sharing
 
 ### Git Workflow
 
@@ -154,10 +160,41 @@ The **Kirby CMS Developer Toolkit** is a Visual Studio Code extension designed t
   - `npm run test` - Run tests
   - `npm run vscode:prepublish` - Pre-publish build step
 
+## Security Considerations
+
+### Implemented Security Measures
+
+- **Path Traversal Protection**: All snippet name inputs are sanitized to prevent directory traversal attacks
+  - Multi-layer validation in `resolveSnippetPath()` (src/utils/kirbyProject.ts)
+  - Rejects `../`, `..\\`, absolute paths, and embedded traversal sequences
+  - Directory boundary validation ensures paths stay within `site/snippets/`
+  - Comprehensive test coverage (8 security tests in src/test/security.test.ts)
+
+- **Input Validation**: All user-provided data is validated before use
+  - Type checking for snippet names
+  - Null/undefined handling
+  - Content length validation in file creation handler
+
+- **Race Condition Prevention**: File creation handler uses proper async/await instead of timeouts
+  - Removed arbitrary 100ms timeout
+  - Added try-catch error handling
+  - Content validation to prevent overwriting existing files
+
+- **Dependency Security**: Regular security audits with `npm audit` (currently: 0 vulnerabilities)
+
+### Security Testing
+
+- All security features are covered by automated tests
+- Tests verify protection against common attack vectors
+- Pre-commit hooks ensure security tests pass before code changes
+
 ## Notes for AI Assistants
 
-- When implementing features, always check if workspace is a Kirby project before activating functionality
-- Prioritize simplicity and maintainability over feature completeness for MVP
-- Use VS Code's built-in capabilities (providers, configuration) rather than custom solutions
-- Reference VS Code Extension API documentation for implementation patterns
-- Test in realistic Kirby project structures, not just minimal examples
+- **Security First**: Always validate and sanitize user inputs before file system operations
+- **Test Coverage**: Write security tests for any new file path handling or user input processing
+- **Kirby Project Detection**: Check if workspace is a Kirby project before activating functionality
+- **Simplicity**: Prioritize simplicity and maintainability over feature completeness
+- **VS Code Patterns**: Use VS Code's built-in capabilities (providers, configuration) rather than custom solutions
+- **Documentation**: Reference VS Code Extension API documentation for implementation patterns
+- **Realistic Testing**: Test in realistic Kirby project structures, not just minimal examples
+- **Pre-commit Testing**: All changes must pass the test suite before commit (enforced by Husky hooks)

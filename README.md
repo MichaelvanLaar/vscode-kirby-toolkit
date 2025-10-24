@@ -127,6 +127,18 @@ If you find CodeLens links distracting but still want F12 navigation:
 }
 ```
 
+## Security & Quality
+
+This extension has undergone comprehensive security review and testing:
+
+- ✅ **36 automated tests** covering all features
+- ✅ **Path traversal protection** with input sanitization
+- ✅ **Zero security vulnerabilities** in dependencies
+- ✅ **Pre-commit testing** via Husky hooks
+- ✅ **Strict TypeScript** compilation and ESLint validation
+
+See [SECURITY.md](SECURITY.md) for detailed security information and vulnerability reporting.
+
 ## Known Issues
 
 - **Custom Kirby directory structures**: MVP version only supports the standard `site/` directory structure
@@ -155,14 +167,20 @@ Contributions are welcome! This project is open source.
 4. Press F5 to launch Extension Development Host
 5. Test your changes
 
-### Building
+### Building & Testing
 
 ```bash
-npm run compile      # Compile TypeScript
+npm run compile      # Compile TypeScript + copy schemas
 npm run watch        # Watch mode for development
-npm run lint         # Run ESLint
-npm run test         # Run tests
+npm run lint         # Run ESLint validation
+npm run test         # Run all 36 tests (compile + lint + test suite)
 ```
+
+**Quality Assurance:**
+- All commits are automatically tested via pre-commit hooks
+- Tests must pass before code can be committed
+- 36 tests covering security, parsing, type-hints, and integration
+- Zero tolerance for security vulnerabilities
 
 ### Packaging
 
@@ -188,6 +206,7 @@ This extension is licensed under the MIT License.
 ## Support
 
 - **Issues**: [Report bugs or request features](https://github.com/MichaelvanLaar/vscode-kirby-toolkit/issues)
+- **Security**: [Report vulnerabilities](SECURITY.md#reporting-a-vulnerability)
 - **Kirby Forum**: Join the discussion at [forum.getkirby.com](https://forum.getkirby.com)
 
 ---
