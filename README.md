@@ -68,18 +68,39 @@ This extension contributes the following settings:
 
 ## Installation
 
-### From VSIX (Development/Testing)
-
-1. Download the `.vsix` file
-2. Open VS Code
-3. Go to Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`)
-4. Click the "..." menu at the top of the Extensions view
-5. Select "Install from VSIX..."
-6. Choose the downloaded `.vsix` file
-
 ### From Marketplace (Coming Soon)
 
 Search for "Kirby CMS Developer Toolkit" in the VS Code Extensions Marketplace.
+
+### From GitHub Releases
+
+1. Go to the [Releases page](https://github.com/MichaelvanLaar/vscode-kirby-toolkit/releases)
+2. Download the latest `.vsix` file
+3. Open VS Code
+4. Go to Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`)
+5. Click the "..." menu at the top of the Extensions view
+6. Select "Install from VSIX..."
+7. Choose the downloaded `.vsix` file
+
+### Build from Source
+
+If you want to build and install the extension yourself:
+
+```bash
+# Clone the repository
+git clone https://github.com/MichaelvanLaar/vscode-kirby-toolkit.git
+cd vscode-kirby-toolkit
+
+# Install dependencies
+npm install
+
+# Build the VSIX file
+npm install -g @vscode/vsce
+vsce package
+
+# This creates a .vsix file in the current directory
+# Install it using the steps above (Extensions view → Install from VSIX)
+```
 
 ## Usage Tips
 
