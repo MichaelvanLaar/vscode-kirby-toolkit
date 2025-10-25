@@ -9,7 +9,7 @@
     "email": "michael@van-laar.de"
   },
   "homepage": "https://github.com/MichaelvanLaar/vscode-kirby-toolkit",
-  "publisher": "TODO-add-marketplace-publisher-id",
+  "publisher": "MichaelvanLaar",
   "repository": {
     "type": "git",
     "url": "https://github.com/MichaelvanLaar/vscode-kirby-toolkit"

@@ -5,14 +5,14 @@ suite('Extension Integration Test Suite', () => {
 	vscode.window.showInformationMessage('Running Kirby CMS Developer Toolkit tests');
 
 	test('Extension should be present', () => {
-		const extension = vscode.extensions.getExtension('TODO-add-marketplace-publisher-id.vscode-kirby-toolkit');
+		const extension = vscode.extensions.getExtension('MichaelvanLaar.vscode-kirby-toolkit');
 		assert.ok(extension, 'Extension should be installed');
 	});
 
 	test('Extension should activate', async function() {
 		this.timeout(10000); // Allow time for activation
 
-		const extension = vscode.extensions.getExtension('TODO-add-marketplace-publisher-id.vscode-kirby-toolkit');
+		const extension = vscode.extensions.getExtension('MichaelvanLaar.vscode-kirby-toolkit');
 		if (extension) {
 			await extension.activate();
 			assert.ok(extension.isActive, 'Extension should be active');

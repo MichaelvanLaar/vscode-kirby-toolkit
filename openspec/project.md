@@ -2,12 +2,15 @@
 
 ## Purpose
 
-The **Kirby CMS Developer Toolkit** is a Visual Studio Code extension designed to enhance productivity for web developers working with Kirby CMS, a file-based PHP content management system. The toolkit addresses common workflow pain points by automating repetitive tasks (type-hint injection), providing intelligent validation and auto-completion (Blueprint YAML support), and enabling seamless navigation between related project files (snippet navigation).
+The **Kirby CMS Developer Toolkit** is a Visual Studio Code extension designed to enhance productivity for web developers working with Kirby CMS, a file-based PHP content management system. The toolkit addresses common workflow pain points by automating repetitive tasks (type-hint injection, scaffolding), providing intelligent validation and auto-completion (Blueprint YAML support), and enabling seamless navigation between related project files (templates, controllers, models, snippets, blueprints).
 
 **Primary Goals**:
-- Reduce manual boilerplate code writing (PHPDoc type-hints)
+- Reduce manual boilerplate code writing (PHPDoc type-hints, page type scaffolding)
 - Prevent errors through YAML validation for Kirby Blueprints
-- Accelerate development with quick navigation between templates, snippets, and blueprints
+- Accelerate development with quick navigation between templates, controllers, models, snippets, and blueprints
+- Enable efficient code refactoring (snippet extraction tool)
+- Streamline integration with modern tools (Tailwind CSS auto-configuration)
+- Provide visibility into Blueprint structure (field display in templates)
 - Provide zero-configuration experience with sensible defaults
 
 ## Tech Stack
@@ -21,6 +24,7 @@ The **Kirby CMS Developer Toolkit** is a Visual Studio Code extension designed t
   - YAML (for Kirby Blueprint files)
   - JSON Schema (Kirby Blueprint schema by bnomei, MIT licensed)
   - PHP (parsing snippet() calls, injecting PHPDoc)
+  - js-yaml (4.1.0) - Blueprint YAML parsing for field extraction
 - **Repository**: https://github.com/MichaelvanLaar/vscode-kirby-toolkit
 
 ## Project Conventions
@@ -52,24 +56,26 @@ The **Kirby CMS Developer Toolkit** is a Visual Studio Code extension designed t
 - **Directory Structure**:
   - `src/extension.ts` - Main entry point with activate()/deactivate()
   - `src/config/` - Configuration access (settings.ts)
+  - `src/commands/` - User-facing commands (pageTypeScaffolder.ts, snippetExtractor.ts)
   - `src/providers/` - Language feature providers (CodeLens, Definition, type hints)
-  - `src/utils/` - Pure utility functions (kirbyProject.ts, phpParser.ts)
+  - `src/integrations/` - Third-party integrations (tailwindIntegration.ts)
+  - `src/utils/` - Pure utility functions (kirbyProject.ts, phpParser.ts, yamlParser.ts, tailwindDetector.ts)
   - `src/schemas/` - JSON Schema files for Blueprint validation
-  - `src/test/` - Test files
+  - `src/test/` - Test files (179 tests across 12 test suites)
 - **Configuration Access**: Centralize VS Code settings access in `config/settings.ts`
 - **Extension Lifecycle**: Follow standard VS Code extension pattern with `activate()` and `deactivate()` functions
 - **Build Process**: TypeScript compilation + schema file copying to `out/` directory
 
 ### Testing Strategy
 
-- **Comprehensive Test Suite**: 36 tests covering all major functionality
-  - **Security Tests** (`src/test/security.test.ts`): Path traversal protection, input validation
-  - **Unit Tests** (`src/test/phpParser.test.ts`, `src/test/kirbyProject.test.ts`): Pure utility functions
-  - **Feature Tests** (`src/test/typeHints.test.ts`): Type hint generation and detection
+- **Comprehensive Test Suite**: 179 tests covering all major functionality
+  - **Security Tests** (`src/test/security.test.ts`, `src/test/kirbyProjectExtended.test.ts`): Path traversal protection, input validation, filename validation
+  - **Unit Tests** (`src/test/phpParser.test.ts`, `src/test/kirbyProject.test.ts`, `src/test/yamlParser.test.ts`, `src/test/tailwindDetector.test.ts`): Pure utility functions
+  - **Feature Tests** (`src/test/typeHints.test.ts`, `src/test/pageTypeScaffolder.test.ts`, `src/test/snippetExtractor.test.ts`, `src/test/blueprintFieldCodeLens.test.ts`, `src/test/fileNavigation.test.ts`): All major features
   - **Integration Tests** (`src/test/extension.test.ts`): VS Code API interactions, command registration
 - **Test Framework**: Mocha + VS Code Extension Test Runner (@vscode/test-cli, @vscode/test-electron)
 - **Test Execution**: All tests run via `npm test` (compile + lint + test suite)
-- **Current Status**: 36/36 tests passing (100% success rate)
+- **Current Status**: 179/179 tests passing (100% success rate)
 - **Automated Testing**: Pre-commit hooks via Husky ensure tests run before every commit
 - **Coverage Target**: >80% code coverage for core logic (currently focused on security-critical paths)
 - **Test Isolation**: Each test creates unique mock documents to avoid state sharing
@@ -100,6 +106,7 @@ The **Kirby CMS Developer Toolkit** is a Visual Studio Code extension designed t
   - `site/blueprints/` - YAML configuration files defining content structure
   - `site/config/` - PHP configuration files
   - `site/controllers/` - PHP controller files for template logic
+  - `site/models/` - PHP model classes extending Kirby's Page class
 - **Global Variables**: Kirby provides `$page`, `$site`, `$kirby` in templates/snippets
 - **Snippet System**: `snippet('name')` function loads `site/snippets/name.php`
 - **Blueprints**: YAML files defining fields, sections, and validation for content editing
@@ -144,7 +151,13 @@ The **Kirby CMS Developer Toolkit** is a Visual Studio Code extension designed t
 ### Optional Dependencies
 
 - **Intelephense** (bmewburn.vscode-intelephense-client): PHP language server that benefits from type-hints but not required by extension
+- **Tailwind CSS IntelliSense** (bradlc.vscode-tailwindcss): Enhanced when extension auto-configures Tailwind for PHP files
 - **Kirby Blueprint JSON Schema**: Using schema from bnomei/kirby-schema (MIT licensed), bundled in extension
+
+### Runtime Dependencies
+
+- **js-yaml** (4.1.0): YAML parsing library for Blueprint field extraction
+- **@types/js-yaml** (4.0.9): TypeScript type definitions for js-yaml (dev dependency)
 
 ### Build Dependencies
 
@@ -164,23 +177,27 @@ The **Kirby CMS Developer Toolkit** is a Visual Studio Code extension designed t
 
 ### Implemented Security Measures
 
-- **Path Traversal Protection**: All snippet name inputs are sanitized to prevent directory traversal attacks
-  - Multi-layer validation in `resolveSnippetPath()` (src/utils/kirbyProject.ts)
+- **Path Traversal Protection**: All snippet and file name inputs are sanitized to prevent directory traversal attacks
+  - Multi-layer validation in `resolveSnippetPath()` and `validateFileName()` (src/utils/kirbyProject.ts)
   - Rejects `../`, `..\\`, absolute paths, and embedded traversal sequences
-  - Directory boundary validation ensures paths stay within `site/snippets/`
-  - Comprehensive test coverage (8 security tests in src/test/security.test.ts)
+  - Directory boundary validation ensures paths stay within appropriate directories
+  - Comprehensive test coverage (15+ security tests in src/test/security.test.ts and src/test/kirbyProjectExtended.test.ts)
 
 - **Input Validation**: All user-provided data is validated before use
-  - Type checking for snippet names
+  - Type checking for snippet names, page type names, file names
   - Null/undefined handling
-  - Content length validation in file creation handler
+  - Content length validation in file creation handlers (100KB limit for snippets, 500KB for Blueprints)
+  - File size limits to prevent performance degradation
+  - Bracket balance validation in snippet extraction
 
-- **Race Condition Prevention**: File creation handler uses proper async/await instead of timeouts
-  - Removed arbitrary 100ms timeout
+- **Race Condition Prevention**: File creation handlers use proper async/await instead of timeouts
+  - Removed arbitrary timeouts
   - Added try-catch error handling
   - Content validation to prevent overwriting existing files
+  - Atomic operations with WorkspaceEdit for multi-file changes
 
 - **Dependency Security**: Regular security audits with `npm audit` (currently: 0 vulnerabilities)
+  - js-yaml: Well-maintained, widely-used library with active security updates
 
 ### Security Testing
 

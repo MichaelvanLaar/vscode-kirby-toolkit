@@ -1,12 +1,254 @@
 # Kirby CMS Developer Toolkit
 
-A Visual Studio Code extension that enhances productivity for Kirby CMS developers by providing type-hints, Blueprint validation, and intelligent snippet navigation.
+A comprehensive Visual Studio Code extension that significantly enhances productivity for Kirby CMS developers by providing intelligent code generation, refactoring tools, navigation, type-hints, and Blueprint validation.
 
 > **Note:** This is an unofficial third-party extension and is not affiliated with or endorsed by Kirby CMS.
 
 ## Features
 
-### 1. Automatic Type-Hint Injection
+### 1. Page Type Scaffolding
+
+Quickly generate complete page types with all necessary files through an interactive wizard.
+
+**Features:**
+- 🚀 Interactive command palette wizard
+- 📝 Generates Blueprint YAML with sensible defaults
+- 🎨 Creates HTML5 template boilerplate
+- ⚙️ Optional Controller and Model file generation
+- 🔒 Built-in security validation for file names
+- ✨ Automatic type-hint injection in templates
+- 📂 Creates necessary directories automatically
+
+**Usage:**
+1. Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+2. Run `Kirby: New Page Type`
+3. Enter the page type name (e.g., "project", "article")
+4. Select which files to generate:
+   - Blueprint (Required) - `site/blueprints/pages/project.yml`
+   - Template (Required) - `site/templates/project.php`
+   - Controller (Optional) - `site/controllers/project.php`
+   - Model (Optional) - `site/models/project.php`
+5. Files are created with sensible defaults and opened automatically
+
+**Example Output:**
+
+Blueprint (`site/blueprints/pages/project.yml`):
+```yaml
+title: Project
+
+fields:
+  title:
+    type: text
+    label: Title
+  text:
+    type: textarea
+    label: Text
+```
+
+Template (`site/templates/project.php`):
+```php
+<?php
+/**
+ * @var \Kirby\Cms\Page $page
+ * @var \Kirby\Cms\Site $site
+ * @var \Kirby\Cms\App $kirby
+ */
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title><?= $page->title() ?></title>
+</head>
+<body>
+  <h1><?= $page->title() ?></h1>
+  <div><?= $page->text()->kirbytext() ?></div>
+</body>
+</html>
+```
+
+Model (`site/models/project.php`):
+```php
+<?php
+
+use Kirby\Cms\Page;
+
+class ProjectPage extends Page
+{
+  // Add custom page methods here
+}
+```
+
+### 2. Extract to Snippet
+
+Refactor selected code into reusable snippets with automatic replacement.
+
+**Features:**
+- ✂️ Extract any selected code to a new snippet file
+- 🔄 Automatically replaces selection with `snippet()` call
+- 🎯 Smart PHP context detection (adds tags only when needed)
+- 📐 Preserves indentation perfectly
+- 🗂️ Supports nested snippet paths (e.g., `partials/menu`)
+- ⚠️ Validates bracket balance and warns about potential issues
+- 🔒 Prevents overwriting existing snippet files
+- ↩️ Full undo support via WorkspaceEdit
+
+**Usage:**
+1. Select the code you want to extract (in any template or snippet file)
+2. Right-click and choose `Kirby: Extract to Snippet`
+   - Or use Command Palette: `Kirby: Extract to Snippet`
+3. Enter snippet name (e.g., "header" or "partials/menu")
+4. The selected code is moved to `site/snippets/header.php`
+5. Original selection is replaced with `<?php snippet('header') ?>`
+
+**Example:**
+
+Before extraction:
+```php
+<header class="site-header">
+  <h1><?= $site->title() ?></h1>
+  <nav><?= snippet('menu') ?></nav>
+</header>
+```
+
+After extraction (with name "header"):
+```php
+<?php snippet('header') ?>
+```
+
+New file `site/snippets/header.php`:
+```php
+<?php
+/**
+ * @var \Kirby\Cms\Page $page
+ * @var \Kirby\Cms\Site $site
+ * @var \Kirby\Cms\App $kirby
+ */
+?>
+<header class="site-header">
+  <h1><?= $site->title() ?></h1>
+  <nav><?= snippet('menu') ?></nav>
+</header>
+```
+
+### 3. Tailwind CSS Integration
+
+Automatic detection and configuration of Tailwind CSS IntelliSense for PHP templates.
+
+**Features:**
+- 🔍 Auto-detects Tailwind CSS in your project
+- ⚡ One-click configuration for IntelliSense in PHP files
+- 📦 Checks for Tailwind CSS IntelliSense extension
+- 🔧 Updates workspace settings automatically
+- 💾 Remembers your choice (doesn't prompt again)
+- 📝 Manual configuration command available
+
+**How it works:**
+1. Extension detects `tailwindcss` in your `package.json`
+2. Prompts: "Tailwind CSS detected. Enable IntelliSense for PHP templates?"
+3. Click "Yes" to automatically configure workspace settings
+4. Tailwind class completion now works in your PHP template files!
+
+**What gets configured:**
+```json
+{
+  "tailwindCSS.includeLanguages": {
+    "php": "html"
+  }
+}
+```
+
+**Manual configuration:**
+- Command: `Kirby: Configure Tailwind IntelliSense`
+- Reset prompt: `Kirby: Reset Tailwind Integration Prompt`
+
+**Requirements:**
+- [Tailwind CSS IntelliSense extension](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss) by Brad Cornes
+- `tailwindcss` in your project's dependencies or devDependencies
+
+### 4. Blueprint Field Navigation
+
+See available custom fields from your Blueprints directly in template files.
+
+**Features:**
+- 👁️ CodeLens shows Blueprint fields at the top of templates
+- 🗺️ Automatic template-to-Blueprint matching
+- 📊 Shows field names and optionally their types
+- ✂️ Truncates long field lists intelligently
+- 🔗 Click to open the corresponding Blueprint file
+- ⚡ Caching for optimal performance
+- 📝 Supports nested Blueprint structures (tabs, sections, columns)
+
+**Usage:**
+Open any template file (e.g., `site/templates/project.php`), and you'll see a CodeLens at the top showing available fields from `site/blueprints/pages/project.yml`:
+
+```
+Blueprint Fields: title, description, image, date, tags ... (+3 more)
+```
+
+Click the CodeLens to open the Blueprint file and edit the field definitions.
+
+**Example:**
+
+Template: `site/templates/article.php`
+
+CodeLens displays:
+```
+Blueprint Fields: title, author, date, text, tags, gallery
+```
+
+Now you know exactly which fields are available when writing:
+```php
+<h1><?= $page->title() ?></h1>
+<p>By <?= $page->author() ?> on <?= $page->date() ?></p>
+<div><?= $page->text()->kirbytext() ?></div>
+```
+
+### 5. Extended File Navigation
+
+Seamlessly navigate between related files: Templates, Controllers, and Models.
+
+**Features:**
+- 🔗 CodeLens links for quick navigation
+- ⚡ F12 / Ctrl+Click (Go-to-Definition) support
+- 🔄 Bidirectional navigation (template ↔ controller ↔ model)
+- 👁️ Peek Definition support
+- 🎯 Multi-target navigation when multiple files exist
+- 📝 Warning indicators for orphaned files
+- ⚙️ Individually configurable navigation types
+
+**Usage:**
+
+**From Templates:**
+- See "Open Controller" and "Open Model" CodeLens links at the top
+- F12 on any part of the file to see all related files
+- Ctrl+Click to jump to controller or model
+
+**From Controllers:**
+- See "Open Template" CodeLens link
+- F12 to jump back to the template
+
+**From Models:**
+- See "Open Template" CodeLens link
+- Navigate back to the template instantly
+
+**Example:**
+
+`site/templates/project.php` shows:
+```
+Open Controller | Open Model
+```
+
+`site/controllers/project.php` shows:
+```
+Open Template
+```
+
+F12 (Go-to-Definition) from `project.php` template shows both:
+- `site/controllers/project.php`
+- `site/models/project.php`
+
+### 6. Automatic Type-Hint Injection
 
 Automatically inject PHPDoc type hints for Kirby's global variables (`$page`, `$site`, `$kirby`) in template and snippet files.
 
@@ -20,7 +262,7 @@ Automatically inject PHPDoc type hints for Kirby's global variables (`$page`, `$
 - Create a new PHP file in `site/templates/` or `site/snippets/` - type hints are added automatically
 - For existing files, use the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run `Kirby: Add Type Hints`
 
-### 2. Blueprint Schema Validation
+### 7. Blueprint Schema Validation
 
 JSON Schema validation and auto-completion for Kirby Blueprint YAML files.
 
@@ -37,7 +279,7 @@ JSON Schema validation and auto-completion for Kirby Blueprint YAML files.
 **Schema Attribution:**
 This extension bundles the [Kirby Blueprint JSON Schema](https://github.com/bnomei/kirby-schema) by [bnomei](https://github.com/bnomei), licensed under MIT.
 
-### 3. Snippet Navigation
+### 8. Snippet Navigation
 
 Quickly navigate from `snippet()` function calls to their corresponding snippet files.
 
@@ -62,11 +304,26 @@ Quickly navigate from `snippet()` function calls to their corresponding snippet 
 
 This extension contributes the following settings:
 
+### Type Hints
 * `kirby.autoInjectTypeHints`: Enable/disable automatic type-hint injection on file creation (default: `true`)
 * `kirby.typeHintVariables`: Array of variable names to include in type-hint blocks (default: `["$page", "$site", "$kirby"]`)
+
+### Blueprint Validation
 * `kirby.enableBlueprintValidation`: Enable/disable Blueprint JSON Schema validation (default: `true`)
 * `kirby.blueprintSchemaPath`: Path to custom Blueprint JSON Schema file (leave empty to use bundled schema)
+
+### Blueprint Field CodeLens
+* `kirby.showBlueprintFieldCodeLens`: Show/hide CodeLens with Blueprint fields in templates (default: `true`)
+* `kirby.showBlueprintFieldTypes`: Show field types in Blueprint field CodeLens (default: `false`)
+* `kirby.blueprintFieldDisplayLimit`: Maximum number of fields to display before truncating (default: `5`)
+
+### Navigation
 * `kirby.showSnippetCodeLens`: Show/hide CodeLens links above snippet() calls (default: `true`)
+* `kirby.showControllerNavigation`: Show/hide navigation to controller files from templates (default: `true`)
+* `kirby.showModelNavigation`: Show/hide navigation to model files from templates (default: `true`)
+
+### Tailwind CSS
+* `kirby.enableTailwindIntegration`: Enable/disable automatic Tailwind CSS integration (default: `true`)
 
 ## Installation
 
@@ -105,6 +362,64 @@ vsce package
 ```
 
 ## Usage Tips
+
+### Page Type Scaffolding
+
+**Quick scaffolding:**
+```
+1. Ctrl+Shift+P → "Kirby: New Page Type"
+2. Enter name: "project"
+3. Select files: Blueprint + Template + Controller
+4. Done! All files created and ready to edit
+```
+
+**Naming conventions:**
+- Use lowercase with hyphens: `blog-post`, `team-member`
+- Use underscores: `my_page`
+- Model classes are auto-converted to PascalCase: `blog-post` → `BlogPostPage`
+
+### Snippet Extraction
+
+**Best practices:**
+- Extract reusable components early (headers, footers, cards)
+- Use nested paths for organization: `partials/navigation`, `components/card`
+- The extension warns about unbalanced brackets - review before confirming
+- Extracted snippets automatically get type hints if enabled
+
+**Undo extraction:**
+Just press `Ctrl+Z` (or `Cmd+Z`) - both the file creation and code replacement are undone together!
+
+### Blueprint Field Navigation
+
+**Viewing field types:**
+Enable `kirby.showBlueprintFieldTypes` to see:
+```
+Blueprint Fields: title (text), description (textarea), image (files)
+```
+
+**Adjusting field limit:**
+```json
+{
+  "kirby.blueprintFieldDisplayLimit": 10
+}
+```
+
+Shows up to 10 fields before truncating with "... (+N more)".
+
+### File Navigation
+
+**Keyboard shortcuts:**
+- `F12` - Go to Definition (jump to related file)
+- `Alt+F12` - Peek Definition (preview without opening)
+- `Ctrl+Click` (Windows/Linux) or `Cmd+Click` (macOS) - Quick jump
+
+**Disabling specific navigation:**
+```json
+{
+  "kirby.showControllerNavigation": false,  // Hide controller links
+  "kirby.showModelNavigation": true         // Keep model links
+}
+```
 
 ### Type Hints
 
@@ -150,33 +465,39 @@ If you find CodeLens links distracting but still want F12 navigation:
 }
 ```
 
+This disables ALL CodeLens features (snippets, controllers, models, Blueprint fields).
+
 ## Security & Quality
 
 This extension has undergone comprehensive security review and testing:
 
-- ✅ **36 automated tests** covering all features
-- ✅ **Path traversal protection** with input sanitization
+- ✅ **179 automated tests** covering all features (up from 36 in v0.2)
+- ✅ **Path traversal protection** with multi-layer input sanitization
 - ✅ **Zero security vulnerabilities** in dependencies
-- ✅ **Pre-commit testing** via Husky hooks
+- ✅ **Pre-commit testing** via Husky hooks ensures every commit passes all tests
 - ✅ **Strict TypeScript** compilation and ESLint validation
+- ✅ **Security-focused tests** for file operations and path validation
+- ✅ **Atomic operations** for file creation (undo support)
+- ✅ **Workspace settings only** (never modifies user-global settings)
 
 See [SECURITY.md](SECURITY.md) for detailed security information and vulnerability reporting.
 
 ## Known Issues
 
-- **Custom Kirby directory structures**: MVP version only supports the standard `site/` directory structure
+- **Custom Kirby directory structures**: Current version only supports the standard `site/` directory structure
 - **Regex-based PHP parsing**: Snippet detection uses regex which may produce false positives in edge cases (e.g., snippet calls in comments)
 - **Blueprint schema extends validation**: When using the `extends` property in Blueprint fields (e.g., `extends: fields/myfield`), you may see a validation warning about a missing `type` property. This is a known limitation in the upstream JSON schema - according to Kirby documentation, the `type` property should be omitted when using `extends`, but the schema incorrectly requires it. Your blueprints will work correctly in Kirby despite this warning. See [bnomei/kirby-schema issue #38](https://github.com/bnomei/kirby-schema/issues/38) for tracking.
+- **PHP AST limitations**: Field navigation and code extraction rely on simple parsing, not full PHP AST analysis. Complex expressions may not be handled perfectly.
 
 ## Roadmap
 
 Planned features for future releases:
 
 - **Bidirectional snippet navigation**: Navigate from snippet files back to templates that use them
-- **Controller file support**: Type-hint injection for controller files
-- **Template navigation**: Jump from Blueprint files to their corresponding templates
-- **Field completion**: Auto-complete field names from Blueprints in templates
-- **Tailwind CSS integration**: Configure Tailwind class completion in PHP files
+- **Enhanced field completion**: IntelliSense for custom field names (e.g., `$page->→`)
+- **Model method navigation**: Jump from template method calls to model definitions
+- **Blueprint field validation**: Real-time validation of field usage in templates
+- **Multi-workspace support**: Better handling of multi-root workspaces
 
 ## Contributing
 
@@ -196,13 +517,13 @@ Contributions are welcome! This project is open source.
 npm run compile      # Compile TypeScript + copy schemas
 npm run watch        # Watch mode for development
 npm run lint         # Run ESLint validation
-npm run test         # Run all 36 tests (compile + lint + test suite)
+npm run test         # Run all 179 tests (compile + lint + test suite)
 ```
 
 **Quality Assurance:**
 - All commits are automatically tested via pre-commit hooks
 - Tests must pass before code can be committed
-- 36 tests covering security, parsing, type-hints, and integration
+- 179 tests covering security, parsing, scaffolding, refactoring, navigation, and integration
 - Zero tolerance for security vulnerabilities
 
 ### Packaging
@@ -219,6 +540,7 @@ This extension is licensed under the MIT License.
 ### Bundled Dependencies
 
 - **Kirby Blueprint JSON Schema**: MIT License © [bnomei](https://github.com/bnomei) - The complete license is bundled with this extension in [src/schemas/LICENSE](src/schemas/LICENSE). Original repository: [bnomei/kirby-schema](https://github.com/bnomei/kirby-schema)
+- **js-yaml**: MIT License © Vitaly Puzrin - Used for parsing Blueprint YAML files
 
 ## Acknowledgments
 
