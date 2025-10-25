@@ -2,7 +2,104 @@
 
 All notable changes to the "Kirby CMS Developer Toolkit" extension will be documented in this file.
 
-## [Unreleased]
+## [0.3.0] - 2025-10-25
+
+### Added
+
+- **Page Type Scaffolding** (FR-2.1)
+  - Interactive wizard to scaffold new Kirby page types
+  - Command: `Kirby: New Page Type` creates Blueprint, Template, Controller, Model
+  - User selects which files to generate during execution
+  - Automatic PascalCase conversion for model class names
+  - Pre-filled templates with common Kirby patterns
+  - Integrated with type-hint injection for generated templates
+  - Security: Input validation prevents path traversal attacks
+
+- **Snippet Extraction Tool** (FR-2.2)
+  - Refactor selected code into reusable snippets
+  - Command: `Kirby: Extract to Snippet` or right-click context menu
+  - Atomic operation: Creates snippet file and replaces selection with `snippet()` call
+  - Smart PHP context detection (adds `<?php ?>` tags when needed)
+  - Bracket balance validation before extraction
+  - Indentation preservation in generated snippet files
+  - Prevents overwriting existing snippets
+  - 100KB selection size limit for performance
+
+- **Tailwind CSS Integration** (FR-2.3)
+  - Automatic detection of Tailwind CSS in project dependencies
+  - One-click configuration of Tailwind IntelliSense for PHP files
+  - Commands: `Kirby: Configure Tailwind CSS`, `Kirby: Reset Tailwind Prompt`
+  - Detects Tailwind in both dependencies and devDependencies
+  - Updates `.vscode/settings.json` with IntelliSense configuration
+  - FileSystemWatcher monitors package.json for new Tailwind installations
+  - Remember user choice to avoid repeated prompts
+
+- **Blueprint Field Display** (FR-2.4)
+  - CodeLens showing available Blueprint fields in template files
+  - Displays field names and types (configurable) at top of template
+  - Click to open corresponding Blueprint file
+  - Supports nested Blueprint structures (tabs, sections, columns)
+  - Smart Blueprint resolution (checks both `blueprints/pages/` and `blueprints/`)
+  - Configurable field display limit with "X more" indicator
+  - Caching with FileSystemWatcher for performance
+  - 500KB Blueprint file size limit
+
+- **Extended File Navigation** (FR-2.5)
+  - Bidirectional navigation between Templates, Controllers, and Models
+  - CodeLens links: "Open Controller", "Open Model", "Open Template"
+  - Go-to-Definition support (F12, Ctrl+Click) from any file type
+  - Multi-target navigation when multiple related files exist
+  - Warning indicators for orphaned files ("Template not found")
+  - Configurable: Disable controller/model navigation independently
+  - Works with existing snippet navigation feature
+
+### Changed
+
+- **Testing**: Expanded test suite from 36 to 179 tests (+143 new tests)
+  - Added comprehensive tests for all new features
+  - 7 new test suites: yamlParser, tailwindDetector, kirbyProjectExtended, pageTypeScaffolder, snippetExtractor, blueprintFieldCodeLens, fileNavigation
+  - All tests passing with zero failures
+
+- **Dependencies**: Added js-yaml for Blueprint YAML parsing
+  - Production: `js-yaml@4.1.0`
+  - Development: `@types/js-yaml@4.0.9`
+
+- **Utilities**: Extended kirbyProject.ts with new helper functions
+  - `isControllerFile()`, `isModelFile()` for file type detection
+  - `resolveControllerPath()`, `resolveModelPath()`, `resolveTemplateFromFile()` for path resolution
+  - `resolveBlueprintForTemplate()` for Blueprint file lookup
+  - `validateFileName()` for security validation
+
+### Configuration
+
+Added 7 new configuration options:
+
+- `kirby.showBlueprintFieldCodeLens`: Show Blueprint fields in templates (default: true)
+- `kirby.showBlueprintFieldTypes`: Show field types in CodeLens (default: true)
+- `kirby.blueprintFieldDisplayLimit`: Max fields shown before truncation (default: 5)
+- `kirby.showControllerNavigation`: Enable controller navigation CodeLens (default: true)
+- `kirby.showModelNavigation`: Enable model navigation CodeLens (default: true)
+- `kirby.autoConfigureTailwind`: Auto-configure Tailwind when detected (default: false)
+- `kirby.promptForTailwindSetup`: Show Tailwind setup prompt (default: true)
+
+### Technical
+
+- **New Source Files** (10 files):
+  - `src/utils/yamlParser.ts` - Blueprint YAML parsing
+  - `src/utils/tailwindDetector.ts` - Tailwind detection logic
+  - `src/commands/pageTypeScaffolder.ts` - Page type scaffolding wizard
+  - `src/commands/snippetExtractor.ts` - Snippet extraction tool
+  - `src/integrations/tailwindIntegration.ts` - Tailwind auto-configuration
+  - `src/providers/blueprintFieldCodeLens.ts` - Blueprint field CodeLens
+  - `src/providers/fileNavigationCodeLens.ts` - Navigation CodeLens
+  - `src/providers/fileNavigationProvider.ts` - Go-to-Definition provider
+  - `src/test/` - 7 new test files with 143 tests
+
+- **Architecture**:
+  - WorkspaceEdit for atomic multi-file operations
+  - Map-based caching with FileSystemWatcher invalidation
+  - Security-first design with multi-layer validation
+  - Command pattern for all user-facing operations
 
 ## [0.2.1] - 2025-10-25
 
