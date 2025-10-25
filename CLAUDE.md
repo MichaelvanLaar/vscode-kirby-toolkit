@@ -57,5 +57,6 @@ This is a **Visual Studio Code extension** for **Kirby CMS** development with 8 
 - **Test Coverage**: All changes must pass 179 tests (enforced by Husky pre-commit hook)
 - **No Kirby Runtime**: Extension runs in VS Code, cannot execute PHP or call Kirby APIs
 - **OpenSpec for Features**: Use OpenSpec workflow for new features/breaking changes
+- **Release Process**: Follow [.claude/release-checklist.md](.claude/release-checklist.md) for publishing new versions
 
 For complete context including architecture, conventions, testing strategy, and domain knowledge, see [openspec/project.md](openspec/project.md).
