@@ -17,6 +17,7 @@
   "bugs": {
     "url": "https://github.com/MichaelvanLaar/vscode-kirby-toolkit/issues"
   },
+  "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.105.0"
   },

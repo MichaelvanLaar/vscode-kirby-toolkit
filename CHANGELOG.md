@@ -4,6 +4,12 @@ All notable changes to the "Kirby CMS Developer Toolkit" extension will be docum
 
 ## [Unreleased]
 
+### Added
+- **Extension Icon**: Custom extension icon based on Kirby CMS branding
+  - Hexagonal design inspired by official Kirby logo
+  - Geometric symbol representing development tools
+  - PNG format (256x256) optimized for VS Code marketplace
+
 ### Changed
 - **Blueprint Schema**: Updated from Kirby 4 to Kirby 5 Blueprint schema
   - Schema source: [bnomei/kirby-schema](https://github.com/bnomei/kirby-schema) (MIT licensed)
