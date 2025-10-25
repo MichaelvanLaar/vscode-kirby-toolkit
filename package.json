@@ -96,7 +96,7 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./ && npm run copy-schemas",
-    "copy-schemas": "mkdir -p out/schemas && cp src/schemas/*.json out/schemas/",
+    "copy-schemas": "mkdir -p out/schemas && cp src/schemas/*.json out/schemas/ && cp src/schemas/LICENSE out/schemas/",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",

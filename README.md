@@ -216,7 +216,7 @@ This extension is licensed under the MIT License.
 
 ### Bundled Dependencies
 
-- **Kirby Blueprint JSON Schema**: [MIT License](https://github.com/bnomei/kirby-schema/blob/main/LICENSE) © [bnomei](https://github.com/bnomei)
+- **Kirby Blueprint JSON Schema**: MIT License © [bnomei](https://github.com/bnomei) - The complete license is bundled with this extension in [src/schemas/LICENSE](src/schemas/LICENSE). Original repository: [bnomei/kirby-schema](https://github.com/bnomei/kirby-schema)
 
 ## Acknowledgments
 

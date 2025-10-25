@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2025 Kirby CMS Developer Toolkit Contributors
+Copyright (c) 2022 Bruno Meilick
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,17 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-## Bundled Dependencies
-
-### Kirby Blueprint JSON Schema
-
-The bundled Kirby Blueprint JSON Schema (src/schemas/blueprint.schema.json) is:
-
-Copyright (c) 2022 Bruno Meilick
-Licensed under the MIT License
-
-Full license text bundled at: src/schemas/LICENSE
-Original repository: https://github.com/bnomei/kirby-schema
