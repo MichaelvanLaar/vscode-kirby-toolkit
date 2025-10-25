@@ -47,8 +47,33 @@
       {
         "command": "kirby.addTypeHints",
         "title": "Kirby: Add Type Hints"
+      },
+      {
+        "command": "kirby.newPageType",
+        "title": "Kirby: New Page Type"
+      },
+      {
+        "command": "kirby.extractToSnippet",
+        "title": "Kirby: Extract to Snippet"
+      },
+      {
+        "command": "kirby.configureTailwind",
+        "title": "Kirby: Configure Tailwind IntelliSense"
+      },
+      {
+        "command": "kirby.resetTailwindPrompt",
+        "title": "Kirby: Reset Tailwind Integration Prompt"
       }
     ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "kirby.extractToSnippet",
+          "when": "editorHasSelection && resourceLangId == php",
+          "group": "1_modification"
+        }
+      ]
+    },
     "configuration": {
       "title": "Kirby CMS Developer Toolkit",
       "properties": {
@@ -83,6 +108,36 @@
           "type": "boolean",
           "default": true,
           "description": "Show CodeLens links above snippet() calls for quick navigation"
+        },
+        "kirby.enableTailwindIntegration": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable automatic Tailwind CSS integration for PHP templates"
+        },
+        "kirby.showBlueprintFieldCodeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show CodeLens with Blueprint fields in template files"
+        },
+        "kirby.showBlueprintFieldTypes": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show field types in Blueprint field CodeLens"
+        },
+        "kirby.blueprintFieldDisplayLimit": {
+          "type": "number",
+          "default": 5,
+          "description": "Maximum number of Blueprint fields to display before truncating"
+        },
+        "kirby.showControllerNavigation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show navigation to controller files from templates"
+        },
+        "kirby.showModelNavigation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show navigation to model files from templates"
         }
       }
     },
@@ -104,6 +159,7 @@
     "prepare": "husky"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
     "@types/vscode": "^1.105.0",
@@ -114,5 +170,8 @@
     "eslint": "^9.36.0",
     "husky": "^9.1.7",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
   }
 }

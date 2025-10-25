@@ -4,6 +4,16 @@ import { isAutoInjectTypeHintsEnabled } from './config/settings';
 import { injectTypeHints, handleFileCreation } from './providers/typeHintProvider';
 import { SnippetCodeLensProvider } from './providers/snippetCodeLens';
 import { SnippetDefinitionProvider } from './providers/snippetDefinition';
+import { registerNewPageTypeCommand } from './commands/pageTypeScaffolder';
+import { registerExtractToSnippetCommand } from './commands/snippetExtractor';
+import {
+  initializeTailwindIntegration,
+  registerConfigureTailwindCommand,
+  registerResetTailwindPromptCommand
+} from './integrations/tailwindIntegration';
+import { BlueprintFieldCodeLensProvider, registerOpenBlueprintCommand } from './providers/blueprintFieldCodeLens';
+import { FileNavigationDefinitionProvider } from './providers/fileNavigationProvider';
+import { FileNavigationCodeLensProvider, registerOpenRelatedFileCommand } from './providers/fileNavigationCodeLens';
 
 /**
  * Extension activation function
@@ -25,6 +35,23 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register Snippet Navigation
   registerSnippetNavigationFeatures(context);
+
+  // Register Page Type Scaffolding
+  registerNewPageTypeCommand(context);
+
+  // Register Snippet Extraction
+  registerExtractToSnippetCommand(context);
+
+  // Register Tailwind Integration
+  initializeTailwindIntegration(context);
+  registerConfigureTailwindCommand(context);
+  registerResetTailwindPromptCommand(context);
+
+  // Register Blueprint Field CodeLens
+  registerBlueprintFieldFeatures(context);
+
+  // Register Extended File Navigation
+  registerFileNavigationFeatures(context);
 
   console.log('Kirby CMS Developer Toolkit activated successfully!');
 }
@@ -114,6 +141,47 @@ function registerSnippetNavigationFeatures(context: vscode.ExtensionContext) {
     openSnippetCommand,
     configChangeListener
   );
+}
+
+/**
+ * Register Blueprint field features
+ */
+function registerBlueprintFieldFeatures(context: vscode.ExtensionContext) {
+  // Register CodeLens provider
+  const codeLensProvider = new BlueprintFieldCodeLensProvider(context);
+  const codeLensDisposable = vscode.languages.registerCodeLensProvider(
+    { language: 'php', pattern: '**/site/templates/**/*.php' },
+    codeLensProvider
+  );
+
+  // Register open Blueprint command
+  registerOpenBlueprintCommand(context);
+
+  context.subscriptions.push(codeLensDisposable);
+}
+
+/**
+ * Register file navigation features
+ */
+function registerFileNavigationFeatures(context: vscode.ExtensionContext) {
+  // Register Definition provider for file navigation
+  const definitionProvider = new FileNavigationDefinitionProvider();
+  const definitionDisposable = vscode.languages.registerDefinitionProvider(
+    { language: 'php', pattern: '**/site/{templates,controllers,models}/**/*.php' },
+    definitionProvider
+  );
+
+  // Register CodeLens provider for file navigation
+  const codeLensProvider = new FileNavigationCodeLensProvider();
+  const codeLensDisposable = vscode.languages.registerCodeLensProvider(
+    { language: 'php', pattern: '**/site/{templates,controllers,models}/**/*.php' },
+    codeLensProvider
+  );
+
+  // Register open related file command
+  registerOpenRelatedFileCommand(context);
+
+  context.subscriptions.push(definitionDisposable, codeLensDisposable);
 }
 
 /**
