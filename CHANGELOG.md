@@ -4,6 +4,8 @@ All notable changes to the "Kirby CMS Developer Toolkit" extension will be docum
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-10-25
+
 ### Added
 - **Extension Icon**: Custom extension icon based on Kirby CMS branding
   - Hexagonal design inspired by official Kirby logo
@@ -18,7 +20,8 @@ All notable changes to the "Kirby CMS Developer Toolkit" extension will be docum
 ### Fixed
 - **Documentation**: Updated Known Issues section to better explain the `extends` property validation warning
   - Added clarification that this is an upstream schema limitation
-  - Blueprints work correctly in Kirby despite the warning
+  - Blueprints work correctly in Kirby despite this warning
+  - Upstream issue tracked at [bnomei/kirby-schema#38](https://github.com/bnomei/kirby-schema/issues/38)
 
 ## [0.1.0] - 2025-10-24
 
