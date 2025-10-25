@@ -4,6 +4,26 @@ All notable changes to the "Kirby CMS Developer Toolkit" extension will be docum
 
 ## [Unreleased]
 
+## [0.2.1] - 2025-10-25
+
+### Added
+- **License Compliance**: Bundled MIT License file for Kirby Blueprint schema
+  - Complete license text now included at `src/schemas/LICENSE`
+  - License properly copied to output directory during build
+  - Full compliance with MIT License distribution requirements
+
+### Changed
+- **Documentation**: Added disclaimer clarifying unofficial third-party status
+  - README now includes note that extension is not affiliated with or endorsed by Kirby CMS
+  - Updated LICENSE file to reference bundled schema license
+  - Updated README to reference bundled license file instead of external link
+
+### Fixed
+- **Issue #1**: Missing license file for bundled Blueprint schema
+  - Previously only linked to external license
+  - Now properly bundles complete license text with extension
+  - Resolves licensing compliance concern raised by @bnomei
+
 ## [0.2.0] - 2025-10-25
 
 ### Added

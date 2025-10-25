@@ -2,7 +2,7 @@
   "name": "vscode-kirby-toolkit",
   "displayName": "Kirby CMS Developer Toolkit",
   "description": "Productivity tools for Kirby CMS development: type-hints, Blueprint validation, and snippet navigation",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "MIT",
   "author": {
     "name": "Michael van Laar",
