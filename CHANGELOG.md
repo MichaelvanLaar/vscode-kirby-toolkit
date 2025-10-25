@@ -2,6 +2,18 @@
 
 All notable changes to the "Kirby CMS Developer Toolkit" extension will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+- **Blueprint Schema**: Updated from Kirby 4 to Kirby 5 Blueprint schema
+  - Schema source: [bnomei/kirby-schema](https://github.com/bnomei/kirby-schema) (MIT licensed)
+  - Provides latest field types and properties for Kirby 5
+
+### Fixed
+- **Documentation**: Updated Known Issues section to better explain the `extends` property validation warning
+  - Added clarification that this is an upstream schema limitation
+  - Blueprints work correctly in Kirby despite the warning
+
 ## [0.1.0] - 2025-10-24
 
 ### Initial MVP Release
@@ -16,7 +28,7 @@ All notable changes to the "Kirby CMS Developer Toolkit" extension will be docum
 - **Blueprint Schema Validation**
   - JSON Schema validation for Kirby Blueprint YAML files
   - Auto-completion for Blueprint fields, sections, and options
-  - Bundled Kirby 4 Blueprint schema (bnomei/kirby-schema, MIT licensed)
+  - Bundled Kirby Blueprint schema (bnomei/kirby-schema, MIT licensed)
   - Support for custom schema paths
 
 - **Snippet Navigation**

@@ -128,7 +128,7 @@ Then use the command `Kirby: Add Type Hints` when needed.
 
 ### Blueprint Validation
 
-The extension uses the Kirby 4 Blueprint schema by default. If you're working with custom Blueprint extensions or need a different schema version:
+The extension uses the Kirby 5 Blueprint schema by default. If you're working with custom Blueprint extensions or need a different schema version:
 
 ```json
 {
@@ -164,7 +164,7 @@ See [SECURITY.md](SECURITY.md) for detailed security information and vulnerabili
 
 - **Custom Kirby directory structures**: MVP version only supports the standard `site/` directory structure
 - **Regex-based PHP parsing**: Snippet detection uses regex which may produce false positives in edge cases (e.g., snippet calls in comments)
-- **Blueprint schema extends**: The `extends` property in Blueprints cannot be fully validated as it references external files
+- **Blueprint schema extends validation**: When using the `extends` property in Blueprint fields (e.g., `extends: fields/myfield`), you may see a validation warning about a missing `type` property. This is a known limitation in the upstream JSON schema - according to Kirby documentation, the `type` property should be omitted when using `extends`, but the schema incorrectly requires it. Your blueprints will work correctly in Kirby despite this warning. See [bnomei/kirby-schema issue #XX](https://github.com/bnomei/kirby-schema/issues) for tracking.
 
 ## Roadmap
 
