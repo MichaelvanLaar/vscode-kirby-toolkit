@@ -2,6 +2,8 @@
 
 A Visual Studio Code extension that enhances productivity for Kirby CMS developers by providing type-hints, Blueprint validation, and intelligent snippet navigation.
 
+> **Note:** This is an unofficial third-party extension and is not affiliated with or endorsed by Kirby CMS.
+
 ## Features
 
 ### 1. Automatic Type-Hint Injection
