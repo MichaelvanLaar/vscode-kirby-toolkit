@@ -327,9 +327,21 @@ This extension contributes the following settings:
 
 ## Installation
 
-### From Marketplace (Coming Soon)
+### From VS Code Marketplace
 
-Search for "Kirby CMS Developer Toolkit" in the VS Code Extensions Marketplace.
+The easiest way to install the extension:
+
+1. Open VS Code
+2. Go to Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`)
+3. Search for "Kirby CMS Developer Toolkit"
+4. Click "Install"
+
+Or install directly from the command line:
+```bash
+code --install-extension MichaelvanLaar.vscode-kirby-toolkit
+```
+
+Marketplace page: https://marketplace.visualstudio.com/items?itemName=MichaelvanLaar.vscode-kirby-toolkit
 
 ### From GitHub Releases
 
