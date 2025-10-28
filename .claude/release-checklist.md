@@ -10,7 +10,7 @@ This checklist should be followed every time a new version is ready for release.
 - [ ] No security vulnerabilities (`npm audit`)
 - [ ] Extension builds successfully (`npm run compile`)
 - [ ] Check `.gitignore` file: Review and update if recent changes require ignoring additional files/directories
-- [ ] **Check for archivable OpenSpec changes**: Run `openspec list` to verify if any completed changes need archiving
+- [ ] Check for archivable OpenSpec changes: Run `openspec list` to verify if any completed changes need archiving
 
 ## Version & Documentation Updates
 
