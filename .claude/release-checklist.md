@@ -9,15 +9,18 @@ This checklist should be followed every time a new version is ready for release.
 - [ ] No linting errors (`npm run lint`)
 - [ ] No security vulnerabilities (`npm audit`)
 - [ ] Extension builds successfully (`npm run compile`)
+- [ ] Check `.gitignore` file: Review and update if recent changes require ignoring additional files/directories
 
 ## Version & Documentation Updates
 
 - [ ] **Determine version number** following semantic versioning:
+
   - Patch (0.3.x): Bug fixes, minor improvements
   - Minor (0.x.0): New features, backward compatible
   - Major (x.0.0): Breaking changes
 
 - [ ] **Update CHANGELOG.md**:
+
   - Move items from `[Unreleased]` to new version section with date
   - Use format: `## [X.Y.Z] - YYYY-MM-DD`
   - Categorize changes: Added, Changed, Fixed, Removed, Security
@@ -27,6 +30,7 @@ This checklist should be followed every time a new version is ready for release.
   - Document any breaking changes prominently
 
 - [ ] **Review README.md**:
+
   - Ensure all new features are documented
   - Update feature count if changed (currently 8 features)
   - Update test count if changed (currently 179 tests)
@@ -35,10 +39,13 @@ This checklist should be followed every time a new version is ready for release.
   - Update screenshots/images if UI changed
 
 - [ ] **Review package.json**:
+
   - Verify description is accurate
   - Check keywords are relevant for discoverability
   - Confirm all new configuration options are listed in `contributes.configuration`
   - Ensure all new commands are registered in `contributes.commands`
+
+- [ ] Review `.gitignore`: Ensure all build artifacts, temporary files, and sensitive data are properly ignored
 
 - [ ] **Update other documentation** if needed:
   - CLAUDE.md (project context for AI)
@@ -54,6 +61,7 @@ This checklist should be followed every time a new version is ready for release.
 ## Testing & Quality Assurance
 
 - [ ] Run full test suite: `npm test`
+
   - All 179 tests must pass
   - Pre-commit hook will enforce this, but verify manually too
 
@@ -66,11 +74,13 @@ This checklist should be followed every time a new version is ready for release.
 ## Commit & Tag
 
 - [ ] **Stage all changes**:
+
   ```bash
   git add CHANGELOG.md package.json README.md [other-modified-files]
   ```
 
 - [ ] **Commit with descriptive message**:
+
   ```bash
   git commit -m "Release version X.Y.Z
 
@@ -80,9 +90,11 @@ This checklist should be followed every time a new version is ready for release.
 
   Co-Authored-By: Claude <noreply@anthropic.com>"
   ```
+
   - Pre-commit hook will run tests automatically
 
 - [ ] **Create annotated git tag**:
+
   ```bash
   git tag -a vX.Y.Z -m "Version X.Y.Z - [Brief description]"
   ```
@@ -95,12 +107,15 @@ This checklist should be followed every time a new version is ready for release.
 ## GitHub Release
 
 - [ ] **Package extension**:
+
   ```bash
   vsce package
   ```
+
   - This creates `vscode-kirby-toolkit-X.Y.Z.vsix`
 
 - [ ] **Create GitHub release**:
+
   ```bash
   gh release create vX.Y.Z vscode-kirby-toolkit-X.Y.Z.vsix \
     --title "vX.Y.Z - [Release Title]" \
@@ -115,9 +130,11 @@ This checklist should be followed every time a new version is ready for release.
 ## Marketplace Publishing
 
 - [ ] **Publish to VS Code Marketplace**:
+
   ```bash
   vsce publish
   ```
+
   - Or with PAT: `vsce publish -p <token>`
   - This automatically runs `vscode:prepublish` script
 
@@ -131,16 +148,19 @@ This checklist should be followed every time a new version is ready for release.
 ## Post-Release
 
 - [ ] **Test installation from marketplace**:
+
   ```bash
   code --install-extension MichaelvanLaar.vscode-kirby-toolkit
   ```
 
 - [ ] **Verify extension works** after marketplace install:
+
   - Open a Kirby project
   - Test key features (type hints, navigation, scaffolding)
   - Check all CodeLens providers work
 
 - [ ] **Update project board/issues** (if applicable):
+
   - Close issues fixed in this release
   - Update project milestones
   - Move tasks to "Released" status
@@ -155,16 +175,19 @@ This checklist should be followed every time a new version is ready for release.
 If critical issues are discovered after publishing:
 
 1. **Unpublish from marketplace** (use with caution):
+
    ```bash
    vsce unpublish MichaelvanLaar.vscode-kirby-toolkit@X.Y.Z
    ```
 
 2. **Delete GitHub release**:
+
    ```bash
    gh release delete vX.Y.Z
    ```
 
 3. **Delete git tag**:
+
    ```bash
    git tag -d vX.Y.Z
    git push origin :refs/tags/vX.Y.Z
@@ -187,3 +210,4 @@ If critical issues are discovered after publishing:
 - **No security vulnerabilities** tolerated (run `npm audit` regularly)
 - Follow **semantic versioning**: https://semver.org/
 - Keep **CHANGELOG.md** updated throughout development, not just at release time
+- **Review `.gitignore`** before each release to ensure proper file exclusion
