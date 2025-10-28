@@ -10,6 +10,7 @@ This checklist should be followed every time a new version is ready for release.
 - [ ] No security vulnerabilities (`npm audit`)
 - [ ] Extension builds successfully (`npm run compile`)
 - [ ] Check `.gitignore` file: Review and update if recent changes require ignoring additional files/directories
+- [ ] **Check for archivable OpenSpec changes**: Run `openspec list` to verify if any completed changes need archiving
 
 ## Version & Documentation Updates
 
@@ -70,6 +71,38 @@ This checklist should be followed every time a new version is ready for release.
   - Test new features in a real Kirby project
   - Verify existing features still work
   - Test with fresh VS Code window
+
+## OpenSpec Management
+
+- [ ] **Archive completed OpenSpec changes**:
+
+  ```bash
+  openspec list
+  ```
+
+  - If any completed changes are listed, archive them:
+
+    ```bash
+    openspec archive <change-id> --yes
+    ```
+
+    Or if specs are already updated manually:
+
+    ```bash
+    openspec archive <change-id> --yes --skip-specs
+    ```
+
+  - Verify archive was created:
+
+    ```bash
+    openspec validate --all --strict
+    ```
+
+- [ ] **Stage OpenSpec changes** (if any were archived):
+
+  ```bash
+  git add openspec/
+  ```
 
 ## Commit & Tag
 
@@ -211,3 +244,4 @@ If critical issues are discovered after publishing:
 - Follow **semantic versioning**: https://semver.org/
 - Keep **CHANGELOG.md** updated throughout development, not just at release time
 - **Review `.gitignore`** before each release to ensure proper file exclusion
+- **Archive OpenSpec changes** as part of release to keep specs synchronized with released code
