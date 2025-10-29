@@ -523,6 +523,28 @@ Contributions are welcome! This project is open source.
 4. Press F5 to launch Extension Development Host
 5. Test your changes
 
+### AI-Assisted Development (Optional)
+
+This project uses Claude Code with Context7 MCP integration for enhanced AI-assisted development. The integration provides access to up-to-date documentation for VS Code Extension API and Kirby CMS.
+
+**Setup:**
+
+1. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Get your Context7 API key from [context7.com](https://context7.com)
+
+3. Add your API key to the `.env` file:
+   ```
+   CONTEXT7_API_KEY=your-api-key-here
+   ```
+
+4. The MCP server is already configured in `.mcp.json`
+
+**Note:** The `.env` file is ignored by git and will not be committed. Context7 integration is completely optional and not required for contributing to the project.
+
 ### Building & Testing
 
 ```bash
