@@ -13,6 +13,18 @@ The **Kirby CMS Developer Toolkit** is a Visual Studio Code extension designed t
 - Provide visibility into Blueprint structure (field display in templates)
 - Provide zero-configuration experience with sensible defaults
 
+## Quality Standards
+
+The toolkit adheres to formal **Non-Functional Requirements (NFRs)** documented in the `quality-attributes` specification. These cross-cutting quality standards apply to all features and ensure:
+
+- **Performance**: Fast activation (<500ms), responsive operations (<100-300ms), efficient file handling
+- **Maintainability**: Modular architecture, single responsibility, testability (>80% coverage)
+- **Compatibility**: Seamless integration with Intelephense, RedHat YAML, Tailwind CSS IntelliSense
+- **User Experience**: Zero configuration, progressive disclosure, contextual actions, clear feedback
+- **Implementation Feasibility**: Standard VS Code patterns, rapid prototyping, ecosystem tool leverage
+
+**Reference**: See `openspec/specs/quality-attributes/spec.md` (or `openspec/changes/add-nonfunctional-requirements/specs/quality-attributes/spec.md` until archived) for detailed requirements and scenarios.
+
 ## Tech Stack
 
 - **Extension Development**: TypeScript 5.9.3 with VS Code Extension API (^1.105.0)
@@ -68,6 +80,8 @@ The **Kirby CMS Developer Toolkit** is a Visual Studio Code extension designed t
 
 ### Testing Strategy
 
+**Note**: Testing strategy aligns with `quality-attributes` NFRs, particularly Code Maintainability requirements (>80% coverage for core logic, >90% for security-critical paths).
+
 - **Comprehensive Test Suite**: 179 tests covering all major functionality
   - **Security Tests** (`src/test/security.test.ts`, `src/test/kirbyProjectExtended.test.ts`): Path traversal protection, input validation, filename validation
   - **Unit Tests** (`src/test/phpParser.test.ts`, `src/test/kirbyProject.test.ts`, `src/test/yamlParser.test.ts`, `src/test/tailwindDetector.test.ts`): Pure utility functions
@@ -77,8 +91,9 @@ The **Kirby CMS Developer Toolkit** is a Visual Studio Code extension designed t
 - **Test Execution**: All tests run via `npm test` (compile + lint + test suite)
 - **Current Status**: 179/179 tests passing (100% success rate)
 - **Automated Testing**: Pre-commit hooks via Husky ensure tests run before every commit
-- **Coverage Target**: >80% code coverage for core logic (currently focused on security-critical paths)
+- **Coverage Target**: >80% code coverage for core logic, >90% for security-critical paths (per `quality-attributes` NFRs)
 - **Test Isolation**: Each test creates unique mock documents to avoid state sharing
+- **NFR Validation**: Tests verify performance targets (activation <500ms), compatibility (graceful degradation), and UX principles (clear feedback)
 
 ### Git Workflow
 
@@ -120,6 +135,8 @@ The **Kirby CMS Developer Toolkit** is a Visual Studio Code extension designed t
 
 ## Important Constraints
 
+**Note**: These constraints are practical implementation boundaries. For formal quality requirements and standards, see the [Quality Standards](#quality-standards) section and `quality-attributes` specification.
+
 ### Technical Constraints
 
 - **VS Code API Compatibility**: Requires VS Code version 1.105.0 or higher (as specified in engines field)
@@ -131,11 +148,15 @@ The **Kirby CMS Developer Toolkit** is a Visual Studio Code extension designed t
 
 ### Performance Constraints
 
+**See also**: `quality-attributes` specification for detailed performance requirements and measurement criteria.
+
 - **Fast Activation**: Extension activation time should be <500ms
 - **Memory Footprint**: Minimal memory usage; leverage VS Code's lazy loading and incremental parsing
 - **Large File Handling**: Limit regex scanning to files <500KB to prevent editor slowdown
 
 ### User Experience Constraints
+
+**See also**: `quality-attributes` specification for comprehensive UX principles (zero configuration, progressive disclosure, contextual actions).
 
 - **Zero Configuration**: Must work out-of-box without requiring user configuration
 - **Non-Intrusive**: Features should enhance workflow without cluttering UI (allow disabling CodeLens)

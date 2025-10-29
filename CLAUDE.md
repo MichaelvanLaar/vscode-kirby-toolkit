@@ -60,3 +60,4 @@ This is a **Visual Studio Code extension** for **Kirby CMS** development with 8 
 - **Release Process**: Follow [.claude/release-checklist.md](.claude/release-checklist.md) for publishing new versions
 
 For complete context including architecture, conventions, testing strategy, and domain knowledge, see [openspec/project.md](openspec/project.md).
+- Always use Conventional Commits and gitmoji when creating git commit messages.
