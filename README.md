@@ -613,6 +613,30 @@ This project uses Claude Code with Context7 MCP integration for enhanced AI-assi
 
 4. The MCP server is already configured in `.mcp.json`
 
+**Available Slash Commands:**
+
+The project includes custom slash commands for on-demand documentation retrieval:
+
+- `/context7:vscode [topic]` - Pull VS Code Extension API docs and samples
+  - Example: `/context7:vscode FileSystemWatcher`
+  - Example: `/context7:vscode` (general context)
+
+- `/context7:kirby [topic]` - Pull Kirby CMS documentation
+  - Example: `/context7:kirby blueprints`
+  - Example: `/context7:kirby` (general context)
+
+- `/context7:full [topic]` - Pull both VS Code and Kirby docs (comprehensive context)
+  - Example: `/context7:full template validation`
+  - Example: `/context7:full` (general context from both sources)
+
+**When to use Context7 commands:**
+- ✅ Working with unfamiliar or new APIs
+- ✅ Troubleshooting complex issues
+- ✅ Implementing features requiring deep understanding of both systems
+- ✅ Verifying best practices or API changes
+- ❌ Following existing patterns (usually not needed)
+- ❌ Routine refactoring or similar features
+
 **Note:** The `.env` file is ignored by git and will not be committed. Context7 integration is completely optional and not required for contributing to the project.
 
 ### Building & Testing

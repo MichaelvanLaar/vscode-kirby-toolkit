@@ -61,5 +61,3 @@ For complete context including architecture, conventions, testing strategy, and 
 ## Notes
 
 - Always use Conventional Commits and gitmoji when creating git commit messages.
-- Always pull in the Visual Studio Code documentation as well as the Visual Studio Code Extension Samples using Context7 as a context when working on Virtual Studio Code related aspects of the project.
-- Always pull in the Kirby CMS documentation using Context7 as a context when working on Kirby related aspects of the project.
