@@ -1,4 +1,5 @@
 <!-- OPENSPEC:START -->
+
 # OpenSpec Instructions
 
 These instructions are for AI assistants working in this project.
@@ -24,16 +25,12 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 This is a **Visual Studio Code extension** for **Kirby CMS** development with 8 comprehensive features:
 
 **Core Features (MVP - v0.1.0):**
+
 1. **Type-Hint Injection**: Automatic PHPDoc type hints for `$page`, `$site`, `$kirby`
 2. **Blueprint Validation**: JSON Schema validation for Kirby Blueprint YAML files
 3. **Snippet Navigation**: CodeLens and Go-to-Definition for `snippet()` calls
 
-**Toolkit Features (v0.3.0):**
-4. **Page Type Scaffolding**: Interactive wizard to generate Blueprint, Template, Controller, Model
-5. **Snippet Extraction**: Refactor selected code into reusable snippets
-6. **Tailwind CSS Integration**: Auto-detect and configure Tailwind IntelliSense for PHP
-7. **Blueprint Field Display**: CodeLens showing Blueprint fields in templates
-8. **Extended File Navigation**: Navigate between Templates, Controllers, and Models
+**Toolkit Features (v0.3.0):** 4. **Page Type Scaffolding**: Interactive wizard to generate Blueprint, Template, Controller, Model 5. **Snippet Extraction**: Refactor selected code into reusable snippets 6. **Tailwind CSS Integration**: Auto-detect and configure Tailwind IntelliSense for PHP 7. **Blueprint Field Display**: CodeLens showing Blueprint fields in templates 8. **Extended File Navigation**: Navigate between Templates, Controllers, and Models
 
 ### Quick Start
 
@@ -60,4 +57,9 @@ This is a **Visual Studio Code extension** for **Kirby CMS** development with 8 
 - **Release Process**: Follow [.claude/release-checklist.md](.claude/release-checklist.md) for publishing new versions
 
 For complete context including architecture, conventions, testing strategy, and domain knowledge, see [openspec/project.md](openspec/project.md).
+
+## Notes
+
 - Always use Conventional Commits and gitmoji when creating git commit messages.
+- Always pull in the Visual Studio Code documentation as well as the Visual Studio Code Extension Samples using Context7 as a context when working on Virtual Studio Code related aspects of the project.
+- Always pull in the Kirby CMS documentation using Context7 as a context when working on Kirby related aspects of the project.
