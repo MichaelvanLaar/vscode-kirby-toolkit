@@ -272,3 +272,105 @@ export function validateFileName(fileName: string): boolean {
   const validPattern = /^[a-zA-Z0-9_-]+$/;
   return validPattern.test(fileName);
 }
+
+/**
+ * Gets the template name from a Blueprint file path
+ * Handles nested Blueprint paths (e.g., blog/post.yml → blog.post.php)
+ * @param blueprintPath Absolute path to the Blueprint file
+ * @returns Template name (without .php extension), or undefined if not a valid Blueprint
+ */
+export function getTemplateNameFromBlueprint(blueprintPath: string): string | undefined {
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot || !isBlueprintFile(blueprintPath)) {
+    return undefined;
+  }
+
+  const relativePath = path.relative(workspaceRoot, blueprintPath);
+
+  // Extract the path relative to site/blueprints/pages/
+  const blueprintsPrefix = 'site/blueprints/pages/';
+  if (!relativePath.startsWith(blueprintsPrefix)) {
+    return undefined;
+  }
+
+  // Remove prefix and .yml extension
+  const blueprintName = relativePath
+    .substring(blueprintsPrefix.length)
+    .replace(/\.yml$/, '');
+
+  // Convert nested paths to dot notation (blog/post → blog.post)
+  const templateName = blueprintName.replace(/[\/\\]/g, '.');
+
+  return templateName;
+}
+
+/**
+ * Gets the Blueprint name from a template file path
+ * Handles dot notation templates (e.g., blog.post.php → blog/post.yml)
+ * @param templatePath Absolute path to the template file
+ * @returns Blueprint name (without .yml extension), or undefined if not a valid template
+ */
+export function getBlueprintNameFromTemplate(templatePath: string): string | undefined {
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot || !isTemplateFile(templatePath)) {
+    return undefined;
+  }
+
+  // Get the base name without extension
+  const baseName = path.basename(templatePath, '.php');
+
+  // Convert dot notation to nested path (blog.post → blog/post)
+  const blueprintName = baseName.replace(/\./g, path.sep);
+
+  return blueprintName;
+}
+
+/**
+ * Finds the matching template file for a Blueprint file
+ * @param blueprintUri VS Code URI of the Blueprint file
+ * @returns VS Code URI of the template file, or undefined if not found
+ */
+export function findMatchingTemplate(blueprintUri: vscode.Uri): vscode.Uri | undefined {
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot) {
+    return undefined;
+  }
+
+  const templateName = getTemplateNameFromBlueprint(blueprintUri.fsPath);
+  if (!templateName) {
+    return undefined;
+  }
+
+  const templatePath = path.join(workspaceRoot, 'site', 'templates', `${templateName}.php`);
+
+  if (fs.existsSync(templatePath)) {
+    return vscode.Uri.file(templatePath);
+  }
+
+  return undefined;
+}
+
+/**
+ * Finds the matching Blueprint file for a template file
+ * @param templateUri VS Code URI of the template file
+ * @returns VS Code URI of the Blueprint file, or undefined if not found
+ */
+export function findMatchingBlueprint(templateUri: vscode.Uri): vscode.Uri | undefined {
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot) {
+    return undefined;
+  }
+
+  const blueprintName = getBlueprintNameFromTemplate(templateUri.fsPath);
+  if (!blueprintName) {
+    return undefined;
+  }
+
+  const blueprintPath = path.join(workspaceRoot, 'site', 'blueprints', 'pages', `${blueprintName}.yml`);
+
+  if (fs.existsSync(blueprintPath)) {
+    return vscode.Uri.file(blueprintPath);
+  }
+
+  return undefined;
+}

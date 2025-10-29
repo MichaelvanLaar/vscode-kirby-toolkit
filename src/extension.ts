@@ -14,6 +14,11 @@ import {
 import { BlueprintFieldCodeLensProvider, registerOpenBlueprintCommand } from './providers/blueprintFieldCodeLens';
 import { FileNavigationDefinitionProvider } from './providers/fileNavigationProvider';
 import { FileNavigationCodeLensProvider, registerOpenRelatedFileCommand } from './providers/fileNavigationCodeLens';
+import { BlueprintTemplateSyncWatcher } from './providers/blueprintTemplateSyncWatcher';
+import { registerResetSyncPromptsCommand } from './commands/resetSyncPrompts';
+
+// Global reference to sync watcher
+let syncWatcher: BlueprintTemplateSyncWatcher | undefined;
 
 /**
  * Extension activation function
@@ -52,6 +57,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register Extended File Navigation
   registerFileNavigationFeatures(context);
+
+  // Register Blueprint/Template Synchronization
+  registerBlueprintTemplateSyncFeatures(context);
 
   console.log('Kirby CMS Developer Toolkit activated successfully!');
 }
@@ -185,8 +193,35 @@ function registerFileNavigationFeatures(context: vscode.ExtensionContext) {
 }
 
 /**
+ * Register Blueprint/Template synchronization features
+ */
+function registerBlueprintTemplateSyncFeatures(context: vscode.ExtensionContext) {
+  const config = vscode.workspace.getConfiguration('kirby');
+  const enabled = config.get<boolean>('enableBlueprintTemplateSync', true);
+
+  if (!enabled) {
+    return;
+  }
+
+  // Initialize sync watcher
+  syncWatcher = new BlueprintTemplateSyncWatcher(context);
+  syncWatcher.activate();
+
+  // Register reset command
+  registerResetSyncPromptsCommand(context, () => {
+    syncWatcher?.resetDismissedPrompts();
+  });
+}
+
+/**
  * Extension deactivation function
  */
 export function deactivate() {
+  // Clean up sync watcher
+  if (syncWatcher) {
+    syncWatcher.deactivate();
+    syncWatcher = undefined;
+  }
+
   console.log('Kirby CMS Developer Toolkit deactivated');
 }

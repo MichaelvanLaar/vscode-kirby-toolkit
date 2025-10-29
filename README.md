@@ -79,7 +79,70 @@ class ProjectPage extends Page
 }
 ```
 
-### 2. Extract to Snippet
+### 2. Blueprint/Template Synchronization
+
+Automatically detect missing counterpart files when you create a Blueprint or Template, and offer to create them with one click.
+
+**Features:**
+- 🔄 Monitors Blueprint and Template file creation in real-time
+- 📝 Prompts to create missing counterparts automatically
+- ⚙️ Optional Controller and Model file creation
+- 🎯 Handles nested Blueprint structures (e.g., `blog/post.yml` → `blog.post.php`)
+- 🔕 "Don't ask again" option with workspace-specific memory
+- ⚡ Smart debouncing to avoid notification spam during bulk operations
+- 🛠️ Three behavior modes: Ask (default), Never, Always
+
+**How it works:**
+
+**Scenario 1: Creating a Blueprint**
+1. Create a new Blueprint file: `site/blueprints/pages/article.yml`
+2. Extension detects no matching template exists
+3. Notification appears: "📄 Blueprint 'article.yml' created without a template. Create 'article.php'?"
+4. Choose:
+   - **Create Template** - Creates basic template with HTML boilerplate
+   - **Create Template + Controller + Model** - Creates all three files
+   - **Don't ask again** - Remembers choice for this workspace
+   - **Dismiss** - Skip this time only
+
+**Scenario 2: Creating a Template**
+1. Create a new template file: `site/templates/project.php`
+2. Extension detects no matching Blueprint exists
+3. Notification appears: "📄 Template 'project.php' created without a Blueprint. Create Blueprint?"
+4. Choose:
+   - **Create Blueprint** - Creates Blueprint with sensible field defaults
+   - **Don't ask again** - Remembers choice for this workspace
+   - **Dismiss** - Skip this time only
+
+**Nested Blueprint Support:**
+- `site/blueprints/pages/blog/post.yml` → `site/templates/blog.post.php`
+- `site/templates/section.article.php` → `site/blueprints/pages/section/article.yml`
+
+**Configuration Options:**
+```json
+{
+  "kirby.enableBlueprintTemplateSync": true,       // Master toggle
+  "kirby.syncPromptBehavior": "ask",               // "ask" | "never" | "always"
+  "kirby.syncCreateController": false,             // Auto-create controller by default
+  "kirby.syncCreateModel": false,                  // Auto-create model by default
+  "kirby.syncIgnoreFolders": ["test/", "archive/"] // Exclude patterns
+}
+```
+
+**Behavior Modes:**
+- **"ask"** (default): Show notification with action buttons
+- **"never"**: Completely disable sync prompts
+- **"always"**: Automatically create missing files without prompting
+
+**Reset Dismissed Prompts:**
+Run `Kirby: Reset Blueprint/Template Sync Prompts` to clear all "Don't ask again" choices.
+
+**Use Cases:**
+- **Quick prototyping**: Create Blueprint first, get Template automatically
+- **Consistency enforcement**: Never forget to create matching files
+- **Team workflows**: Standardize file creation across team members
+- **Bulk operations**: Smart debouncing prevents notification spam during git operations
+
+### 3. Extract to Snippet
 
 Refactor selected code into reusable snippets with automatic replacement.
 
@@ -131,7 +194,7 @@ New file `site/snippets/header.php`:
 </header>
 ```
 
-### 3. Tailwind CSS Integration
+### 4. Tailwind CSS Integration
 
 Automatic detection and configuration of Tailwind CSS IntelliSense for PHP templates.
 
@@ -166,7 +229,7 @@ Automatic detection and configuration of Tailwind CSS IntelliSense for PHP templ
 - [Tailwind CSS IntelliSense extension](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss) by Brad Cornes
 - `tailwindcss` in your project's dependencies or devDependencies
 
-### 4. Blueprint Field Navigation
+### 5. Blueprint Field Navigation
 
 See available custom fields from your Blueprints directly in template files.
 
@@ -204,7 +267,7 @@ Now you know exactly which fields are available when writing:
 <div><?= $page->text()->kirbytext() ?></div>
 ```
 
-### 5. Extended File Navigation
+### 6. Extended File Navigation
 
 Seamlessly navigate between related files: Templates, Controllers, and Models.
 
@@ -248,7 +311,7 @@ F12 (Go-to-Definition) from `project.php` template shows both:
 - `site/controllers/project.php`
 - `site/models/project.php`
 
-### 6. Automatic Type-Hint Injection
+### 7. Automatic Type-Hint Injection
 
 Automatically inject PHPDoc type hints for Kirby's global variables (`$page`, `$site`, `$kirby`) in template and snippet files.
 
@@ -262,7 +325,7 @@ Automatically inject PHPDoc type hints for Kirby's global variables (`$page`, `$
 - Create a new PHP file in `site/templates/` or `site/snippets/` - type hints are added automatically
 - For existing files, use the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run `Kirby: Add Type Hints`
 
-### 7. Blueprint Schema Validation
+### 8. Blueprint Schema Validation
 
 JSON Schema validation and auto-completion for Kirby Blueprint YAML files.
 
@@ -279,7 +342,7 @@ JSON Schema validation and auto-completion for Kirby Blueprint YAML files.
 **Schema Attribution:**
 This extension bundles the [Kirby Blueprint JSON Schema](https://github.com/bnomei/kirby-schema) by [bnomei](https://github.com/bnomei), licensed under MIT.
 
-### 8. Snippet Navigation
+### 9. Snippet Navigation
 
 Quickly navigate from `snippet()` function calls to their corresponding snippet files.
 
@@ -321,6 +384,13 @@ This extension contributes the following settings:
 * `kirby.showSnippetCodeLens`: Show/hide CodeLens links above snippet() calls (default: `true`)
 * `kirby.showControllerNavigation`: Show/hide navigation to controller files from templates (default: `true`)
 * `kirby.showModelNavigation`: Show/hide navigation to model files from templates (default: `true`)
+
+### Blueprint/Template Synchronization
+* `kirby.enableBlueprintTemplateSync`: Enable/disable automatic Blueprint/Template sync prompts (default: `true`)
+* `kirby.syncPromptBehavior`: How to handle sync prompts - `"ask"`, `"never"`, or `"always"` (default: `"ask"`)
+* `kirby.syncCreateController`: Automatically create controller when creating template from Blueprint (default: `false`)
+* `kirby.syncCreateModel`: Automatically create model when creating template from Blueprint (default: `false`)
+* `kirby.syncIgnoreFolders`: Array of folder patterns to exclude from sync detection (default: `[]`)
 
 ### Tailwind CSS
 * `kirby.enableTailwindIntegration`: Enable/disable automatic Tailwind CSS integration (default: `true`)

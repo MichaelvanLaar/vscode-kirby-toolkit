@@ -63,6 +63,10 @@
       {
         "command": "kirby.resetTailwindPrompt",
         "title": "Kirby: Reset Tailwind Integration Prompt"
+      },
+      {
+        "command": "kirby.resetSyncPrompts",
+        "title": "Kirby: Reset Blueprint/Template Sync Prompts"
       }
     ],
     "menus": {
@@ -138,6 +142,39 @@
           "type": "boolean",
           "default": true,
           "description": "Show navigation to model files from templates"
+        },
+        "kirby.enableBlueprintTemplateSync": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable automatic prompts to create matching Blueprint/Template files"
+        },
+        "kirby.syncPromptBehavior": {
+          "type": "string",
+          "enum": [
+            "ask",
+            "never",
+            "always"
+          ],
+          "default": "ask",
+          "description": "How to handle Blueprint/Template synchronization: 'ask' (prompt user), 'never' (disable prompts), 'always' (auto-create files)"
+        },
+        "kirby.syncCreateController": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically create a controller file when creating a template from a Blueprint"
+        },
+        "kirby.syncCreateModel": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically create a model file when creating a template from a Blueprint"
+        },
+        "kirby.syncIgnoreFolders": {
+          "type": "array",
+          "default": [],
+          "description": "Folder patterns to exclude from Blueprint/Template synchronization detection",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
