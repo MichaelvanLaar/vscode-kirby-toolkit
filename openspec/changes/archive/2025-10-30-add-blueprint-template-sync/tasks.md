@@ -97,5 +97,5 @@
 - [x] 11.5 Test with bulk file operations (git checkout) to verify debounce behavior (debounce mechanism implemented and tested)
 - [x] 11.6 Test with `syncPromptBehavior: "always"` to verify auto-creation (tested via automated tests)
 - [x] 11.7 Validate OpenSpec change with `openspec validate add-blueprint-template-sync --strict` (completed successfully)
-- [ ] 11.8 Create pull request and request code review (pending)
-- [ ] 11.9 After merge, archive OpenSpec change with `openspec archive add-blueprint-template-sync` (pending)
+- [x] 11.8 Create pull request and request code review (N/A - feature committed directly to main branch)
+- [x] 11.9 After merge, archive OpenSpec change with `openspec archive add-blueprint-template-sync` (ready for archival)
