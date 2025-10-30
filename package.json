@@ -67,6 +67,26 @@
       {
         "command": "kirby.resetSyncPrompts",
         "title": "Kirby: Reset Blueprint/Template Sync Prompts"
+      },
+      {
+        "command": "kirby.startBuildWatcher",
+        "title": "Kirby: Start Build Watcher"
+      },
+      {
+        "command": "kirby.stopBuildWatcher",
+        "title": "Kirby: Stop Build Watcher"
+      },
+      {
+        "command": "kirby.restartBuildWatcher",
+        "title": "Kirby: Restart Build Watcher"
+      },
+      {
+        "command": "kirby.runBuildOnce",
+        "title": "Kirby: Run Build Once"
+      },
+      {
+        "command": "kirby.showBuildTerminal",
+        "title": "Kirby: Show Build Terminal"
       }
     ],
     "menus": {
@@ -175,6 +195,36 @@
           "items": {
             "type": "string"
           }
+        },
+        "kirby.enableBuildIntegration": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable build integration features for managing npm build scripts"
+        },
+        "kirby.buildCommand": {
+          "type": "string",
+          "default": "",
+          "description": "Custom build command to run (leave empty to auto-detect from package.json scripts)"
+        },
+        "kirby.buildAutoStart": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically start the build watcher when opening a Kirby workspace"
+        },
+        "kirby.buildAutoStartScript": {
+          "type": "string",
+          "enum": [
+            "dev",
+            "watch",
+            "build"
+          ],
+          "default": "dev",
+          "description": "Which npm script to use for auto-start (dev, watch, or build)"
+        },
+        "kirby.buildAutoStartDelay": {
+          "type": "number",
+          "default": 2000,
+          "description": "Delay in milliseconds before auto-starting build watcher (allows project to load)"
         }
       }
     },

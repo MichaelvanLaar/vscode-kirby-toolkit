@@ -342,7 +342,82 @@ JSON Schema validation and auto-completion for Kirby Blueprint YAML files.
 **Schema Attribution:**
 This extension bundles the [Kirby Blueprint JSON Schema](https://github.com/bnomei/kirby-schema) by [bnomei](https://github.com/bnomei), licensed under MIT.
 
-### 9. Snippet Navigation
+### 9. Frontend Build Integration
+
+Automatically manage Node.js build processes (Vite, Webpack, Tailwind CLI) directly from VS Code with integrated terminal management and status monitoring.
+
+**Features:**
+- 🔨 Auto-detect npm build scripts (`dev`, `watch`, `build`)
+- ▶️ Start/stop/restart build watchers from Command Palette
+- 📊 Real-time build status in the status bar
+- 🖥️ Integrated terminal with clickable error links
+- 🚀 Optional auto-start on workspace open
+- ⚙️ Custom build command configuration
+- 🎯 One-click access to build terminal
+
+**How it works:**
+
+**Automatic Script Detection:**
+The extension scans your `package.json` for common build scripts:
+- **Dev/Watch mode**: `dev`, `watch`, `dev:css`, `watch:css`
+- **One-time build**: `build`, `build:css`, `compile`
+
+**Commands:**
+- `Kirby: Start Build Watcher` - Starts `npm run dev` or `npm run watch`
+- `Kirby: Stop Build Watcher` - Stops the active build process
+- `Kirby: Restart Build Watcher` - Restarts the build process
+- `Kirby: Run Build Once` - Runs `npm run build` (one-time)
+- `Kirby: Show Build Terminal` - Focuses the build terminal
+
+**Status Bar Indicator:**
+- ⚫ **No build** (gray) - No build process running
+- 🔨 **Building** (yellow) - Build process active
+- ✅ **Build ready** (green) - Build completed successfully
+- ❌ **Build error** (red) - Build process failed
+
+Click the status bar to show the build terminal.
+
+**Configuration Examples:**
+
+```json
+{
+  // Enable build integration
+  "kirby.enableBuildIntegration": true,
+
+  // Custom build command (overrides auto-detection)
+  "kirby.buildCommand": "npm run dev",
+
+  // Auto-start build watcher on workspace open
+  "kirby.buildAutoStart": false,
+
+  // Which script to auto-start ("dev", "watch", or "build")
+  "kirby.buildAutoStartScript": "dev",
+
+  // Delay before auto-start (in milliseconds)
+  "kirby.buildAutoStartDelay": 2000
+}
+```
+
+**Supported Build Tools:**
+- ✅ Vite
+- ✅ Webpack
+- ✅ Tailwind CSS CLI
+- ✅ PostCSS
+- ✅ esbuild
+- ✅ Any npm script-based build tool
+
+**Example package.json scripts:**
+```json
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "watch": "tailwindcss -i src/input.css -o dist/output.css --watch"
+  }
+}
+```
+
+### 10. Snippet Navigation
 
 Quickly navigate from `snippet()` function calls to their corresponding snippet files.
 
@@ -391,6 +466,13 @@ This extension contributes the following settings:
 * `kirby.syncCreateController`: Automatically create controller when creating template from Blueprint (default: `false`)
 * `kirby.syncCreateModel`: Automatically create model when creating template from Blueprint (default: `false`)
 * `kirby.syncIgnoreFolders`: Array of folder patterns to exclude from sync detection (default: `[]`)
+
+### Frontend Build Integration
+* `kirby.enableBuildIntegration`: Enable/disable build integration features (default: `true`)
+* `kirby.buildCommand`: Custom build command to run (leave empty for auto-detection) (default: `""`)
+* `kirby.buildAutoStart`: Automatically start build watcher when opening workspace (default: `false`)
+* `kirby.buildAutoStartScript`: Which npm script to use for auto-start - `"dev"`, `"watch"`, or `"build"` (default: `"dev"`)
+* `kirby.buildAutoStartDelay`: Delay in milliseconds before auto-starting build watcher (default: `2000`)
 
 ### Tailwind CSS
 * `kirby.enableTailwindIntegration`: Enable/disable automatic Tailwind CSS integration (default: `true`)

@@ -16,9 +16,20 @@ import { FileNavigationDefinitionProvider } from './providers/fileNavigationProv
 import { FileNavigationCodeLensProvider, registerOpenRelatedFileCommand } from './providers/fileNavigationCodeLens';
 import { BlueprintTemplateSyncWatcher } from './providers/blueprintTemplateSyncWatcher';
 import { registerResetSyncPromptsCommand } from './commands/resetSyncPrompts';
+import { BuildProcess, BuildState } from './integrations/buildIntegration';
+import {
+  startBuildWatcher,
+  stopBuildWatcher,
+  restartBuildWatcher,
+  runBuildOnce,
+  showBuildTerminal
+} from './commands/buildCommands';
 
 // Global reference to sync watcher
 let syncWatcher: BlueprintTemplateSyncWatcher | undefined;
+
+// Global reference to build status bar
+let buildStatusBar: vscode.StatusBarItem | undefined;
 
 /**
  * Extension activation function
@@ -60,6 +71,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register Blueprint/Template Synchronization
   registerBlueprintTemplateSyncFeatures(context);
+
+  // Register Build Integration
+  registerBuildIntegrationFeatures(context);
 
   console.log('Kirby CMS Developer Toolkit activated successfully!');
 }
@@ -214,6 +228,104 @@ function registerBlueprintTemplateSyncFeatures(context: vscode.ExtensionContext)
 }
 
 /**
+ * Register build integration features
+ */
+function registerBuildIntegrationFeatures(context: vscode.ExtensionContext) {
+  const config = vscode.workspace.getConfiguration('kirby');
+  const enabled = config.get<boolean>('enableBuildIntegration', true);
+
+  if (!enabled) {
+    return;
+  }
+
+  // Create status bar item
+  buildStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+  buildStatusBar.command = 'kirby.showBuildTerminal';
+  buildStatusBar.tooltip = 'Kirby Build Status - Click to show terminal';
+  context.subscriptions.push(buildStatusBar);
+
+  // Initialize build process and register state change listener
+  const buildProcess = BuildProcess.getInstance();
+  buildProcess.onStateChange((state: BuildState) => {
+    updateBuildStatusBar(state);
+  });
+
+  // Update initial state
+  updateBuildStatusBar(buildProcess.getState());
+
+  // Register build commands
+  context.subscriptions.push(
+    vscode.commands.registerCommand('kirby.startBuildWatcher', startBuildWatcher),
+    vscode.commands.registerCommand('kirby.stopBuildWatcher', stopBuildWatcher),
+    vscode.commands.registerCommand('kirby.restartBuildWatcher', restartBuildWatcher),
+    vscode.commands.registerCommand('kirby.runBuildOnce', runBuildOnce),
+    vscode.commands.registerCommand('kirby.showBuildTerminal', showBuildTerminal)
+  );
+
+  // Auto-start build if configured
+  const autoStart = config.get<boolean>('buildAutoStart', false);
+  if (autoStart) {
+    const delay = config.get<number>('buildAutoStartDelay', 2000);
+    setTimeout(async () => {
+      // Check if build terminal already exists
+      if (!buildProcess.isRunning()) {
+        // Check workspace state to see if we've shown the notification
+        const hasShownNotification = context.workspaceState.get('buildAutoStartNotificationShown', false);
+
+        if (!hasShownNotification) {
+          vscode.window.showInformationMessage(
+            'Kirby Toolkit auto-started build process. Disable in settings if not desired.',
+            'Disable'
+          ).then((action) => {
+            if (action === 'Disable') {
+              config.update('buildAutoStart', false, vscode.ConfigurationTarget.Workspace);
+            }
+          });
+          context.workspaceState.update('buildAutoStartNotificationShown', true);
+        }
+
+        await startBuildWatcher();
+      }
+    }, delay);
+  }
+}
+
+/**
+ * Updates the build status bar based on build state
+ */
+function updateBuildStatusBar(state: BuildState) {
+  if (!buildStatusBar) {
+    return;
+  }
+
+  switch (state) {
+    case BuildState.Idle:
+      buildStatusBar.text = '⚫ No build';
+      buildStatusBar.backgroundColor = undefined;
+      buildStatusBar.show();
+      break;
+
+    case BuildState.Building:
+      buildStatusBar.text = '🔨 Building';
+      buildStatusBar.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
+      buildStatusBar.show();
+      break;
+
+    case BuildState.Ready:
+      buildStatusBar.text = '✅ Build ready';
+      buildStatusBar.backgroundColor = undefined;
+      buildStatusBar.show();
+      break;
+
+    case BuildState.Error:
+      buildStatusBar.text = '❌ Build error';
+      buildStatusBar.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
+      buildStatusBar.show();
+      break;
+  }
+}
+
+/**
  * Extension deactivation function
  */
 export function deactivate() {
@@ -221,6 +333,16 @@ export function deactivate() {
   if (syncWatcher) {
     syncWatcher.deactivate();
     syncWatcher = undefined;
+  }
+
+  // Clean up build process
+  const buildProcess = BuildProcess.getInstance();
+  buildProcess.dispose();
+
+  // Clean up status bar
+  if (buildStatusBar) {
+    buildStatusBar.dispose();
+    buildStatusBar = undefined;
   }
 
   console.log('Kirby CMS Developer Toolkit deactivated');

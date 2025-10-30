@@ -2,6 +2,73 @@
 
 All notable changes to the "Kirby CMS Developer Toolkit" extension will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- **Frontend Build Integration** (FR-4.1)
+  - Automatic detection of npm build scripts from `package.json`
+  - Start/stop/restart build watchers from Command Palette
+  - Real-time build status in the status bar (idle, building, ready, error)
+  - Integrated terminal management with VS Code Terminal API
+  - Optional auto-start on workspace open with configurable delay
+  - Support for custom build commands via settings
+  - Commands:
+    - `Kirby: Start Build Watcher` - Start dev/watch script
+    - `Kirby: Stop Build Watcher` - Stop active build process
+    - `Kirby: Restart Build Watcher` - Restart build process
+    - `Kirby: Run Build Once` - Execute one-time build
+    - `Kirby: Show Build Terminal` - Focus build terminal
+  - Status bar indicator with click-to-show terminal
+  - Singleton pattern prevents multiple simultaneous builds
+  - Priority-based script detection (dev > watch > dev:css > watch:css)
+  - Build state management with callback notifications
+
+### Changed
+
+- **Utilities**: New `src/utils/buildScriptDetector.ts` module
+  - `detectBuildScripts()` - Parse and detect build scripts from package.json
+  - `validateBuildCommand()` - Security validation for commands
+  - `getNpmCommand()` - Format npm run commands
+  - `hasPackageJson()` - Check for package.json existence
+
+- **Integration**: New `src/integrations/buildIntegration.ts` module
+  - `BuildProcess` class for terminal lifecycle management
+  - Build state tracking (Idle, Building, Ready, Error)
+  - Terminal event listeners for state transitions
+  - Cleanup on extension deactivation
+
+- **Commands**: New `src/commands/buildCommands.ts` module
+  - Complete command implementations with error handling
+  - User-friendly notifications for all operations
+  - Integration with workspace detection
+
+- **Testing**: Expanded test suite from 207 to 232 tests (+25 new tests)
+  - Added `buildScriptDetector.test.ts` with 11 tests
+  - Added `buildIntegration.test.ts` with 14 integration tests
+  - Tests for script detection, validation, terminal management
+  - Tests for singleton pattern, state transitions, cleanup
+  - All tests passing with zero failures
+
+### Configuration
+
+Added 5 new configuration options:
+
+- `kirby.enableBuildIntegration`: Enable/disable build integration (default: `true`)
+- `kirby.buildCommand`: Custom build command override (default: `""`)
+- `kirby.buildAutoStart`: Auto-start on workspace open (default: `false`)
+- `kirby.buildAutoStartScript`: Which script to auto-start (default: `"dev"`)
+- `kirby.buildAutoStartDelay`: Auto-start delay in milliseconds (default: `2000`)
+
+### Supported Build Tools
+
+- Vite
+- Webpack
+- Tailwind CSS CLI
+- PostCSS
+- esbuild
+- Any npm script-based build tool
+
 ## [0.4.0] - 2025-10-29
 
 ### Added
