@@ -434,7 +434,7 @@ Quickly navigate from `snippet()` function calls to their corresponding snippet 
 
 ## Requirements
 
-- **VS Code**: Version 1.105.0 or higher
+- **VS Code**: Version 1.60.0 or higher
 - **Kirby CMS project**: Extension detects and activates only in workspaces containing a `site/` directory
 - **YAML extension**: The [Red Hat YAML extension](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) is required for Blueprint validation (automatically installed as dependency)
 

@@ -27,7 +27,7 @@ The toolkit adheres to formal **Non-Functional Requirements (NFRs)** documented 
 
 ## Tech Stack
 
-- **Extension Development**: TypeScript 5.9.3 with VS Code Extension API (^1.105.0)
+- **Extension Development**: TypeScript 5.9.3 with VS Code Extension API (^1.60.0)
 - **Target Platform**: Kirby CMS (PHP-based, file-based CMS)
 - **Build Tools**: Native TypeScript compiler (tsc) with custom schema copy step
 - **Linting**: ESLint 9.36.0 with @typescript-eslint plugin
@@ -139,7 +139,7 @@ The toolkit adheres to formal **Non-Functional Requirements (NFRs)** documented 
 
 ### Technical Constraints
 
-- **VS Code API Compatibility**: Requires VS Code version 1.105.0 or higher (as specified in engines field)
+- **VS Code API Compatibility**: Requires VS Code version 1.60.0 or higher (as specified in engines field)
 - **PHP Parsing Limitations**: Uses simple regex-based parsing for MVP; full PHP AST parsing out of scope
 - **No Kirby Runtime Dependency**: Extension cannot execute Kirby PHP code or call Kirby APIs
 - **Standard Kirby Structure Only**: MVP assumes default `site/` directory structure; custom configurations out of scope

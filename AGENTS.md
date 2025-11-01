@@ -31,7 +31,7 @@ This is a **Visual Studio Code extension** that enhances productivity for develo
 
 ## Quick Reference
 
-- **Tech Stack**: TypeScript 5.9.3 + VS Code Extension API ^1.105.0
+- **Tech Stack**: TypeScript 5.9.3 + VS Code Extension API ^1.60.0
 - **Target Platform**: Kirby CMS (PHP file-based CMS)
 - **Testing**: 36 comprehensive tests (Mocha + VS Code Extension Test Runner)
 - **Security**: Path traversal protection, input validation, 0 vulnerabilities
