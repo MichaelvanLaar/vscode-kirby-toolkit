@@ -398,6 +398,23 @@ Click the status bar to show the build terminal.
 }
 ```
 
+**Current Limitations:**
+
+Due to VS Code Terminal API constraints, the build integration has the following limitations:
+
+1. **Extension-Managed Builds Only**: The extension can only monitor build processes it starts through its own commands (`Kirby: Start Build Watcher`, etc.). Builds started via VS Code's npm scripts panel or external terminals are not detected.
+
+2. **Watch Mode Rebuilds Not Detected**: When using watch mode (e.g., `npm run dev-server` with webpack watch), the status bar shows "Build ready" after the initial build completes (5-second timeout). Subsequent rebuilds triggered by file changes are not detected - the status bar remains in "ready" state.
+
+3. **Timeout-Based Status**: The "Build ready" state is determined by a 5-second timeout after starting the build terminal, not by parsing actual build output. The extension cannot read terminal output due to Terminal API limitations.
+
+4. **No Build Output Parsing**: Build errors and warnings are only visible in the terminal itself. The extension cannot parse build tool output to detect specific errors or provide "jump to error" functionality.
+
+**Workarounds:**
+- Use the extension's `Kirby: Start Build Watcher` command instead of the npm scripts panel for status bar integration
+- Check the build terminal directly for detailed output and error messages
+- The terminal output includes clickable file paths for most build tools (Vite, Webpack, etc.)
+
 **Supported Build Tools:**
 - ✅ Vite
 - ✅ Webpack
@@ -635,7 +652,7 @@ This disables ALL CodeLens features (snippets, controllers, models, Blueprint fi
 
 This extension has undergone comprehensive security review and testing:
 
-- ✅ **179 automated tests** covering all features (up from 36 in v0.2)
+- ✅ **232 automated tests** covering all features (up from 36 in v0.2)
 - ✅ **Path traversal protection** with multi-layer input sanitization
 - ✅ **Zero security vulnerabilities** in dependencies
 - ✅ **Pre-commit testing** via Husky hooks ensures every commit passes all tests
@@ -727,13 +744,13 @@ The project includes custom slash commands for on-demand documentation retrieval
 npm run compile      # Compile TypeScript + copy schemas
 npm run watch        # Watch mode for development
 npm run lint         # Run ESLint validation
-npm run test         # Run all 179 tests (compile + lint + test suite)
+npm run test         # Run all 232 tests (compile + lint + test suite)
 ```
 
 **Quality Assurance:**
 - All commits are automatically tested via pre-commit hooks
 - Tests must pass before code can be committed
-- 179 tests covering security, parsing, scaffolding, refactoring, navigation, and integration
+- 232 tests covering security, parsing, scaffolding, refactoring, navigation, integration, and build automation
 - Zero tolerance for security vulnerabilities
 
 ### Packaging

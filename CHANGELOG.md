@@ -4,7 +4,22 @@ All notable changes to the "Kirby CMS Developer Toolkit" extension will be docum
 
 ## [Unreleased]
 
+## [0.4.0] - 2025-11-02
+
 ### Added
+
+- **Blueprint/Template Synchronization** (FR-3.1)
+  - Automatic detection of missing Blueprint/Template counterpart files
+  - FileSystemWatcher monitors file creation in `site/blueprints/pages/` and `site/templates/`
+  - Smart notification prompts with multiple action options
+  - One-click creation of missing files with sensible defaults
+  - Optional Controller and Model file creation when generating Templates
+  - Support for nested Blueprint structures (e.g., `blog/post.yml` → `blog.post.php`)
+  - "Don't ask again" option with workspace-specific memory
+  - Smart debouncing (500ms) to prevent notification spam during bulk operations
+  - Three behavior modes: "ask" (default), "never", "always"
+  - Command: `Kirby: Reset Blueprint/Template Sync Prompts` to clear dismissed prompts
+  - Folder exclusion patterns via `kirby.syncIgnoreFolders` setting
 
 - **Frontend Build Integration** (FR-4.1)
   - Automatic detection of npm build scripts from `package.json`
@@ -23,8 +38,36 @@ All notable changes to the "Kirby CMS Developer Toolkit" extension will be docum
   - Singleton pattern prevents multiple simultaneous builds
   - Priority-based script detection (dev > watch > dev:css > watch:css)
   - Build state management with callback notifications
+  - Supported build tools: Vite, Webpack, Tailwind CSS CLI, PostCSS, esbuild, and any npm script-based build tool
+  - Current limitations documented in README (Terminal API constraints)
 
 ### Changed
+
+- **Refactoring**: Extracted scaffolding content generators to shared utilities
+  - Created `src/utils/scaffoldingTemplates.ts` with reusable content generators
+  - Functions: `generateBlueprintContent()`, `generateTemplateContent()`, `generateControllerContent()`, `generateModelContent()`
+  - Updated `pageTypeScaffolder.ts` to use shared utilities
+  - Ensures consistent file generation across all features
+  - DRY principle: Single source of truth for boilerplate content
+
+- **Utilities**: Extended kirbyProject.ts with file name mapping functions
+  - `getTemplateNameFromBlueprint()` - Converts Blueprint path to template name
+  - `getBlueprintNameFromTemplate()` - Converts template name to Blueprint path
+  - `findMatchingTemplate()` - Finds matching template URI for a Blueprint
+  - `findMatchingBlueprint()` - Finds matching Blueprint URI for a template
+  - Handles nested structures with dot notation conversion
+
+- **Testing**: Expanded test suite from 179 to 232 tests (+53 new tests)
+  - Added `blueprintTemplateSync.test.ts` with comprehensive test coverage
+  - Tests for file name mapping (flat and nested structures)
+  - Tests for content generators (Blueprint, Template, Controller, Model)
+  - Edge case testing (single character names, hyphens, underscores, deeply nested)
+  - Security validation for generated content
+  - Added `buildScriptDetector.test.ts` with 11 tests
+  - Added `buildIntegration.test.ts` with 14 integration tests
+  - Tests for script detection, validation, terminal management
+  - Tests for singleton pattern, state transitions, cleanup
+  - All tests passing with zero failures
 
 - **Utilities**: New `src/utils/buildScriptDetector.ts` module
   - `detectBuildScripts()` - Parse and detect build scripts from package.json
@@ -43,97 +86,53 @@ All notable changes to the "Kirby CMS Developer Toolkit" extension will be docum
   - User-friendly notifications for all operations
   - Integration with workspace detection
 
-- **Testing**: Expanded test suite from 207 to 232 tests (+25 new tests)
-  - Added `buildScriptDetector.test.ts` with 11 tests
-  - Added `buildIntegration.test.ts` with 14 integration tests
-  - Tests for script detection, validation, terminal management
-  - Tests for singleton pattern, state transitions, cleanup
-  - All tests passing with zero failures
-
 ### Configuration
 
-Added 5 new configuration options:
+Added 10 new configuration options:
 
-- `kirby.enableBuildIntegration`: Enable/disable build integration (default: `true`)
-- `kirby.buildCommand`: Custom build command override (default: `""`)
-- `kirby.buildAutoStart`: Auto-start on workspace open (default: `false`)
-- `kirby.buildAutoStartScript`: Which script to auto-start (default: `"dev"`)
-- `kirby.buildAutoStartDelay`: Auto-start delay in milliseconds (default: `2000`)
-
-### Supported Build Tools
-
-- Vite
-- Webpack
-- Tailwind CSS CLI
-- PostCSS
-- esbuild
-- Any npm script-based build tool
-
-## [0.4.0] - 2025-10-29
-
-### Added
-
-- **Blueprint/Template Synchronization** (FR-3.1)
-  - Automatic detection of missing Blueprint/Template counterpart files
-  - FileSystemWatcher monitors file creation in `site/blueprints/pages/` and `site/templates/`
-  - Smart notification prompts with multiple action options
-  - One-click creation of missing files with sensible defaults
-  - Optional Controller and Model file creation when generating Templates
-  - Support for nested Blueprint structures (e.g., `blog/post.yml` → `blog.post.php`)
-  - "Don't ask again" option with workspace-specific memory
-  - Smart debouncing (500ms) to prevent notification spam during bulk operations
-  - Three behavior modes: "ask" (default), "never", "always"
-  - Command: `Kirby: Reset Blueprint/Template Sync Prompts` to clear dismissed prompts
-  - Folder exclusion patterns via `kirby.syncIgnoreFolders` setting
-
-### Changed
-
-- **Refactoring**: Extracted scaffolding content generators to shared utilities
-  - Created `src/utils/scaffoldingTemplates.ts` with reusable content generators
-  - Functions: `generateBlueprintContent()`, `generateTemplateContent()`, `generateControllerContent()`, `generateModelContent()`
-  - Updated `pageTypeScaffolder.ts` to use shared utilities
-  - Ensures consistent file generation across all features
-  - DRY principle: Single source of truth for boilerplate content
-
-- **Utilities**: Extended kirbyProject.ts with file name mapping functions
-  - `getTemplateNameFromBlueprint()` - Converts Blueprint path to template name
-  - `getBlueprintNameFromTemplate()` - Converts template name to Blueprint path
-  - `findMatchingTemplate()` - Finds matching template URI for a Blueprint
-  - `findMatchingBlueprint()` - Finds matching Blueprint URI for a template
-  - Handles nested structures with dot notation conversion
-
-- **Testing**: Expanded test suite from 179 to 207 tests (+28 new tests)
-  - Added `blueprintTemplateSync.test.ts` with comprehensive test coverage
-  - Tests for file name mapping (flat and nested structures)
-  - Tests for content generators (Blueprint, Template, Controller, Model)
-  - Edge case testing (single character names, hyphens, underscores, deeply nested)
-  - Security validation for generated content
-  - All tests passing with zero failures
-
-### Configuration
-
-Added 5 new configuration options:
-
+**Blueprint/Template Sync:**
 - `kirby.enableBlueprintTemplateSync`: Enable/disable sync prompts (default: `true`)
 - `kirby.syncPromptBehavior`: Prompt behavior - `"ask"`, `"never"`, or `"always"` (default: `"ask"`)
 - `kirby.syncCreateController`: Auto-create controller when creating template from Blueprint (default: `false`)
 - `kirby.syncCreateModel`: Auto-create model when creating template from Blueprint (default: `false`)
 - `kirby.syncIgnoreFolders`: Array of folder patterns to exclude from sync detection (default: `[]`)
 
+**Frontend Build Integration:**
+- `kirby.enableBuildIntegration`: Enable/disable build integration (default: `true`)
+- `kirby.buildCommand`: Custom build command override (default: `""`)
+- `kirby.buildAutoStart`: Auto-start on workspace open (default: `false`)
+- `kirby.buildAutoStartScript`: Which script to auto-start (default: `"dev"`)
+- `kirby.buildAutoStartDelay`: Auto-start delay in milliseconds (default: `2000`)
+
 ### Technical
 
-- **New Source Files** (3 files):
-  - `src/providers/blueprintTemplateSyncWatcher.ts` - FileSystemWatcher for sync detection
-  - `src/commands/resetSyncPrompts.ts` - Command to reset dismissed prompts
-  - `src/utils/scaffoldingTemplates.ts` - Shared content generation utilities
-  - `src/test/blueprintTemplateSync.test.ts` - Comprehensive test suite
+- **New Source Files** (9 files):
+  - Blueprint/Template Sync:
+    - `src/providers/blueprintTemplateSyncWatcher.ts` - FileSystemWatcher for sync detection
+    - `src/commands/resetSyncPrompts.ts` - Command to reset dismissed prompts
+    - `src/utils/scaffoldingTemplates.ts` - Shared content generation utilities
+    - `src/test/blueprintTemplateSync.test.ts` - Comprehensive test suite
+  - Frontend Build Integration:
+    - `src/integrations/buildIntegration.ts` - Build process management
+    - `src/integrations/buildStatusBar.ts` - Status bar integration
+    - `src/utils/buildScriptDetector.ts` - Build script detection
+    - `src/commands/buildCommands.ts` - Build command implementations
+    - `src/test/buildScriptDetector.test.ts` - Build detection tests
+    - `src/test/buildIntegration.test.ts` - Build integration tests
 
 - **Architecture**:
-  - FileSystemWatcher API for efficient file creation detection
-  - Debounce mechanism to prevent multiple notifications during bulk operations
-  - Workspace state API for persistent "Don't ask again" preferences
-  - Queue mechanism to prevent concurrent notifications (max 1 active)
-  - Configuration change listener to restart watchers when settings change
+  - Blueprint/Template Sync:
+    - FileSystemWatcher API for efficient file creation detection
+    - Debounce mechanism to prevent multiple notifications during bulk operations
+    - Workspace state API for persistent "Don't ask again" preferences
+    - Queue mechanism to prevent concurrent notifications (max 1 active)
+    - Configuration change listener to restart watchers when settings change
+  - Frontend Build Integration:
+    - VS Code Terminal API for interactive build process management
+    - Singleton pattern to prevent multiple simultaneous builds
+    - Event-driven state management with callback notifications
+    - Terminal lifecycle management with automatic cleanup
+    - Script detection with priority-based selection algorithm
 
 ## [0.3.0] - 2025-10-25
 
