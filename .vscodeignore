@@ -9,3 +9,13 @@ vsc-extension-quickstart.md
 **/*.map
 **/*.ts
 **/.vscode-test.*
+.env
+.env.example
+.mcp.json
+.augment/**
+.claude/**
+.github/**
+.husky/**
+openspec/**
+AGENTS.md
+CLAUDE.md
