@@ -374,3 +374,280 @@ export function findMatchingBlueprint(templateUri: vscode.Uri): vscode.Uri | und
 
   return undefined;
 }
+
+/**
+ * Checks if a file path is a Kirby block Blueprint file
+ * @param filePath Absolute path to the file
+ */
+export function isBlockBlueprintFile(filePath: string): boolean {
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot) {
+    return false;
+  }
+
+  const relativePath = path.relative(workspaceRoot, filePath);
+  return relativePath.startsWith('site/blueprints/blocks/') && filePath.endsWith('.yml');
+}
+
+/**
+ * Checks if a file path is a Kirby block snippet file
+ * @param filePath Absolute path to the file
+ */
+export function isBlockSnippetFile(filePath: string): boolean {
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot) {
+    return false;
+  }
+
+  const relativePath = path.relative(workspaceRoot, filePath);
+  return relativePath.startsWith('site/snippets/blocks/') && filePath.endsWith('.php');
+}
+
+/**
+ * Checks if a file path is a Kirby field Blueprint file
+ * @param filePath Absolute path to the file
+ */
+export function isFieldBlueprintFile(filePath: string): boolean {
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot) {
+    return false;
+  }
+
+  const relativePath = path.relative(workspaceRoot, filePath);
+  return relativePath.startsWith('site/blueprints/fields/') && filePath.endsWith('.yml');
+}
+
+/**
+ * Checks if a file path is a Kirby field snippet file
+ * @param filePath Absolute path to the file
+ */
+export function isFieldSnippetFile(filePath: string): boolean {
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot) {
+    return false;
+  }
+
+  const relativePath = path.relative(workspaceRoot, filePath);
+  return relativePath.startsWith('site/snippets/fields/') && filePath.endsWith('.php');
+}
+
+/**
+ * Detects the block nesting strategy used in the workspace
+ * by analyzing existing block snippet files
+ * @param workspaceRoot Absolute path to the workspace root
+ * @returns 'flat' (dot notation) or 'nested' (directories)
+ */
+export function detectBlockNestingStrategy(workspaceRoot: string): 'flat' | 'nested' {
+  const blocksDir = path.join(workspaceRoot, 'site', 'snippets', 'blocks');
+
+  if (!fs.existsSync(blocksDir)) {
+    // Default to nested for new projects (modern convention)
+    return 'nested';
+  }
+
+  try {
+    const entries = fs.readdirSync(blocksDir, { withFileTypes: true });
+
+    // Check if there are any subdirectories
+    const hasNestedDirs = entries.some(entry => entry.isDirectory());
+
+    // Check if there are any files with dot notation
+    const hasFlatFiles = entries.some(entry => entry.isFile() && entry.name.includes('.') && entry.name.endsWith('.php'));
+
+    // If both exist, prefer nested (more modern)
+    if (hasNestedDirs) {
+      return 'nested';
+    }
+
+    if (hasFlatFiles) {
+      return 'flat';
+    }
+
+    // Default to nested if no files exist yet
+    return 'nested';
+  } catch {
+    return 'nested';
+  }
+}
+
+/**
+ * Gets the block snippet name from a Blueprint file path
+ * @param blueprintPath Absolute path to the Blueprint file
+ * @param strategy Nesting strategy ('flat' or 'nested')
+ * @returns Snippet name (without .php extension), or undefined if not a valid Blueprint
+ */
+export function getBlockSnippetNameFromBlueprint(blueprintPath: string, strategy: 'flat' | 'nested'): string | undefined {
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot || !isBlockBlueprintFile(blueprintPath)) {
+    return undefined;
+  }
+
+  const relativePath = path.relative(workspaceRoot, blueprintPath);
+  const blueprintsPrefix = 'site/blueprints/blocks/';
+
+  if (!relativePath.startsWith(blueprintsPrefix)) {
+    return undefined;
+  }
+
+  // Remove prefix and .yml extension
+  const blockName = relativePath
+    .substring(blueprintsPrefix.length)
+    .replace(/\.yml$/, '');
+
+  if (strategy === 'flat') {
+    // Convert nested paths to dot notation (gallery/image → gallery.image)
+    return blockName.replace(/[\/\\]/g, '.');
+  } else {
+    // Keep nested structure (gallery/image → gallery/image)
+    return blockName;
+  }
+}
+
+/**
+ * Gets the block Blueprint name from a snippet file path
+ * @param snippetPath Absolute path to the snippet file
+ * @returns Blueprint name (without .yml extension), or undefined if not a valid snippet
+ */
+export function getBlockBlueprintNameFromSnippet(snippetPath: string): string | undefined {
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot || !isBlockSnippetFile(snippetPath)) {
+    return undefined;
+  }
+
+  const relativePath = path.relative(workspaceRoot, snippetPath);
+  const snippetsPrefix = 'site/snippets/blocks/';
+
+  if (!relativePath.startsWith(snippetsPrefix)) {
+    return undefined;
+  }
+
+  // Remove prefix and .php extension
+  const blockName = relativePath
+    .substring(snippetsPrefix.length)
+    .replace(/\.php$/, '');
+
+  // Convert dot notation to nested path (gallery.image → gallery/image)
+  return blockName.replace(/\./g, path.sep);
+}
+
+/**
+ * Gets the field snippet name from a Blueprint file path
+ * @param blueprintPath Absolute path to the Blueprint file
+ * @param strategy Nesting strategy ('flat' or 'nested')
+ * @returns Snippet name (without .php extension), or undefined if not a valid Blueprint
+ */
+export function getFieldSnippetNameFromBlueprint(blueprintPath: string, strategy: 'flat' | 'nested'): string | undefined {
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot || !isFieldBlueprintFile(blueprintPath)) {
+    return undefined;
+  }
+
+  const relativePath = path.relative(workspaceRoot, blueprintPath);
+  const blueprintsPrefix = 'site/blueprints/fields/';
+
+  if (!relativePath.startsWith(blueprintsPrefix)) {
+    return undefined;
+  }
+
+  // Remove prefix and .yml extension
+  const fieldName = relativePath
+    .substring(blueprintsPrefix.length)
+    .replace(/\.yml$/, '');
+
+  if (strategy === 'flat') {
+    // Convert nested paths to dot notation
+    return fieldName.replace(/[\/\\]/g, '.');
+  } else {
+    // Keep nested structure
+    return fieldName;
+  }
+}
+
+/**
+ * Finds the matching block snippet file for a block Blueprint file
+ * @param blueprintUri VS Code URI of the Blueprint file
+ * @returns Absolute path to the snippet file, or undefined if not found
+ */
+export function findMatchingBlockSnippet(blueprintUri: vscode.Uri): string | undefined {
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot || !isBlockBlueprintFile(blueprintUri.fsPath)) {
+    return undefined;
+  }
+
+  // Try nested strategy first
+  let snippetName = getBlockSnippetNameFromBlueprint(blueprintUri.fsPath, 'nested');
+  if (snippetName) {
+    const snippetPath = path.join(workspaceRoot, 'site', 'snippets', 'blocks', `${snippetName}.php`);
+    if (fs.existsSync(snippetPath)) {
+      return snippetPath;
+    }
+  }
+
+  // Try flat strategy
+  snippetName = getBlockSnippetNameFromBlueprint(blueprintUri.fsPath, 'flat');
+  if (snippetName) {
+    const snippetPath = path.join(workspaceRoot, 'site', 'snippets', 'blocks', `${snippetName}.php`);
+    if (fs.existsSync(snippetPath)) {
+      return snippetPath;
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Finds the matching block Blueprint file for a block snippet file
+ * @param snippetUri VS Code URI of the snippet file
+ * @returns Absolute path to the Blueprint file, or undefined if not found
+ */
+export function findMatchingBlockBlueprint(snippetUri: vscode.Uri): string | undefined {
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot || !isBlockSnippetFile(snippetUri.fsPath)) {
+    return undefined;
+  }
+
+  const blueprintName = getBlockBlueprintNameFromSnippet(snippetUri.fsPath);
+  if (!blueprintName) {
+    return undefined;
+  }
+
+  const blueprintPath = path.join(workspaceRoot, 'site', 'blueprints', 'blocks', `${blueprintName}.yml`);
+
+  if (fs.existsSync(blueprintPath)) {
+    return blueprintPath;
+  }
+
+  return undefined;
+}
+
+/**
+ * Finds the matching field snippet file for a field Blueprint file
+ * @param blueprintUri VS Code URI of the Blueprint file
+ * @returns Absolute path to the snippet file, or undefined if not found
+ */
+export function findMatchingFieldSnippet(blueprintUri: vscode.Uri): string | undefined {
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot || !isFieldBlueprintFile(blueprintUri.fsPath)) {
+    return undefined;
+  }
+
+  // Try nested strategy first
+  let snippetName = getFieldSnippetNameFromBlueprint(blueprintUri.fsPath, 'nested');
+  if (snippetName) {
+    const snippetPath = path.join(workspaceRoot, 'site', 'snippets', 'fields', `${snippetName}.php`);
+    if (fs.existsSync(snippetPath)) {
+      return snippetPath;
+    }
+  }
+
+  // Try flat strategy
+  snippetName = getFieldSnippetNameFromBlueprint(blueprintUri.fsPath, 'flat');
+  if (snippetName) {
+    const snippetPath = path.join(workspaceRoot, 'site', 'snippets', 'fields', `${snippetName}.php`);
+    if (fs.existsSync(snippetPath)) {
+      return snippetPath;
+    }
+  }
+
+  return undefined;
+}

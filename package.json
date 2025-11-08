@@ -225,6 +225,26 @@
           "type": "number",
           "default": 2000,
           "description": "Delay in milliseconds before auto-starting build watcher (allows project to load)"
+        },
+        "kirby.syncBlockSnippets": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable automatic prompts to create matching block Blueprint/Snippet files"
+        },
+        "kirby.syncFieldSnippets": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable automatic prompts to create matching field Blueprint/Snippet files (opt-in)"
+        },
+        "kirby.syncBlockNestingStrategy": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "flat",
+            "nested"
+          ],
+          "default": "auto",
+          "description": "Block snippet organization strategy: 'auto' (detect from existing files), 'flat' (dot notation), 'nested' (directories)"
         }
       }
     },
