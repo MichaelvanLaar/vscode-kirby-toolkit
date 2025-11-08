@@ -761,13 +761,13 @@ The project includes custom slash commands for on-demand documentation retrieval
 npm run compile      # Compile TypeScript + copy schemas
 npm run watch        # Watch mode for development
 npm run lint         # Run ESLint validation
-npm run test         # Run all 232 tests (compile + lint + test suite)
+npm run test         # Run all 284 tests (compile + lint + test suite)
 ```
 
 **Quality Assurance:**
 - All commits are automatically tested via pre-commit hooks
 - Tests must pass before code can be committed
-- 232 tests covering security, parsing, scaffolding, refactoring, navigation, integration, and build automation
+- 284 tests covering security, parsing, scaffolding, refactoring, navigation, integration, and build automation
 - Zero tolerance for security vulnerabilities
 
 ### Packaging

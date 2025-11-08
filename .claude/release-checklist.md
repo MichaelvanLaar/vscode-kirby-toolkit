@@ -5,7 +5,7 @@ This checklist should be followed every time a new version is ready for release.
 ## Pre-Release Verification
 
 - [ ] All features/fixes for this release are complete and merged
-- [ ] All tests passing (179 tests, enforced by pre-commit hooks)
+- [ ] All tests passing (284 tests, enforced by pre-commit hooks)
 - [ ] No linting errors (`npm run lint`)
 - [ ] No security vulnerabilities (`npm audit`)
 - [ ] Extension builds successfully (`npm run compile`)
@@ -34,7 +34,7 @@ This checklist should be followed every time a new version is ready for release.
 
   - Ensure all new features are documented
   - Update feature count if changed (currently 8 features)
-  - Update test count if changed (currently 179 tests)
+  - Update test count if changed (currently 284 tests)
   - Check installation instructions are current
   - Verify all code examples are accurate
   - Update screenshots/images if UI changed
@@ -63,7 +63,7 @@ This checklist should be followed every time a new version is ready for release.
 
 - [ ] Run full test suite: `npm test`
 
-  - All 179 tests must pass
+  - All 284 tests must pass
   - Pre-commit hook will enforce this, but verify manually too
 
 - [ ] Test extension manually:
@@ -239,7 +239,7 @@ If critical issues are discovered after publishing:
 ## Notes
 
 - **Pre-commit hooks** automatically run tests before every commit (via Husky)
-- **All 179 tests must pass** before release (enforced by hooks)
+- **All 284 tests must pass** before release (enforced by hooks)
 - **No security vulnerabilities** tolerated (run `npm audit` regularly)
 - Follow **semantic versioning**: https://semver.org/
 - Keep **CHANGELOG.md** updated throughout development, not just at release time
