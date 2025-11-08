@@ -420,11 +420,13 @@ suite('Blueprint/Template Synchronization Test Suite', () => {
       assert.ok(content.includes('class="block block-gallery"'));
     });
 
-    test('should generate block snippet with nested blocks support', () => {
+    test('should generate block snippet with flexible boilerplate', () => {
       const content = generateBlockSnippetContent('text');
-      assert.ok(content.includes('$block->content()->toBlocks()'));
-      assert.ok(content.includes('foreach ($content as $nestedBlock)'));
-      assert.ok(content.includes('<?= $nestedBlock ?>'));
+      // Should include helpful comments for common patterns
+      assert.ok(content.includes('// Access block fields:'));
+      assert.ok(content.includes('// For nested blocks:'));
+      // Should not assume nested blocks by default (keep it simple)
+      assert.ok(!content.includes('$block->content()->toBlocks()') || content.includes('// if ($content = $block->content()->toBlocks())'));
     });
 
     test('should handle hyphenated block names', () => {

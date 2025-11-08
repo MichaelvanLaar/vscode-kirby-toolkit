@@ -19,7 +19,8 @@ import {
   getBlockSnippetNameFromBlueprint,
   getBlockBlueprintNameFromSnippet,
   getFieldSnippetNameFromBlueprint,
-  detectBlockNestingStrategy
+  detectBlockNestingStrategy,
+  clearNestingStrategyCache
 } from '../utils/kirbyProject';
 import {
   generateBlueprintContent,
@@ -61,44 +62,45 @@ export class BlueprintTemplateSyncWatcher {
       return;
     }
 
+    // Collect all subscriptions to register at once
+    const subscriptions: vscode.Disposable[] = [];
+
     // Watch for Blueprint file creation
     this.blueprintWatcher = vscode.workspace.createFileSystemWatcher(
       '**/site/blueprints/pages/**/*.yml'
     );
-
     this.blueprintWatcher.onDidCreate((uri) => {
       this.handleFileCreation(uri, 'blueprint');
     });
+    subscriptions.push(this.blueprintWatcher);
 
     // Watch for Template file creation
     this.templateWatcher = vscode.workspace.createFileSystemWatcher(
       '**/site/templates/**/*.php'
     );
-
     this.templateWatcher.onDidCreate((uri) => {
       this.handleFileCreation(uri, 'template');
     });
+    subscriptions.push(this.templateWatcher);
 
     // Watch for block Blueprint file creation (if enabled)
     if (getSyncBlockSnippets()) {
       this.blockBlueprintWatcher = vscode.workspace.createFileSystemWatcher(
         '**/site/blueprints/blocks/**/*.yml'
       );
-
       this.blockBlueprintWatcher.onDidCreate((uri) => {
         this.handleFileCreation(uri, 'block-blueprint');
       });
+      subscriptions.push(this.blockBlueprintWatcher);
 
       // Watch for block snippet file creation
       this.blockSnippetWatcher = vscode.workspace.createFileSystemWatcher(
         '**/site/snippets/blocks/**/*.php'
       );
-
       this.blockSnippetWatcher.onDidCreate((uri) => {
         this.handleFileCreation(uri, 'block-snippet');
       });
-
-      this.context.subscriptions.push(this.blockBlueprintWatcher, this.blockSnippetWatcher);
+      subscriptions.push(this.blockSnippetWatcher);
     }
 
     // Watch for field Blueprint file creation (if enabled)
@@ -106,12 +108,10 @@ export class BlueprintTemplateSyncWatcher {
       this.fieldBlueprintWatcher = vscode.workspace.createFileSystemWatcher(
         '**/site/blueprints/fields/**/*.yml'
       );
-
       this.fieldBlueprintWatcher.onDidCreate((uri) => {
         this.handleFileCreation(uri, 'field-blueprint');
       });
-
-      this.context.subscriptions.push(this.fieldBlueprintWatcher);
+      subscriptions.push(this.fieldBlueprintWatcher);
     }
 
     // Listen for configuration changes to restart watchers (dispose old listener first to prevent duplicates)
@@ -125,9 +125,19 @@ export class BlueprintTemplateSyncWatcher {
         this.deactivate();
         this.activate();
       }
-    });
 
-    this.context.subscriptions.push(this.blueprintWatcher, this.templateWatcher, this.configListener);
+      // Clear nesting strategy cache when strategy configuration changes
+      if (event.affectsConfiguration('kirby.syncBlockNestingStrategy')) {
+        const workspaceRoot = getWorkspaceRoot();
+        if (workspaceRoot) {
+          clearNestingStrategyCache(workspaceRoot);
+        }
+      }
+    });
+    subscriptions.push(this.configListener);
+
+    // Register all subscriptions at once for cleaner management
+    this.context.subscriptions.push(...subscriptions);
   }
 
   /**

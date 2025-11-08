@@ -123,11 +123,19 @@ export function generateBlockSnippetContent(blockName: string): string {
 ?>
 <!-- Block: ${blockName} -->
 <div class="block block-${blockName}">
-  <?php if ($content = $block->content()->toBlocks()): ?>
-    <?php foreach ($content as $nestedBlock): ?>
-      <?= $nestedBlock ?>
-    <?php endforeach ?>
-  <?php endif ?>
+  <?php
+  // Access block fields: $block->fieldName()
+  // Example: $block->text(), $block->image(), etc.
+  ?>
+
+  <?php
+  // For nested blocks:
+  // if ($content = $block->content()->toBlocks()):
+  //   foreach ($content as $nestedBlock):
+  //     echo $nestedBlock;
+  //   endforeach;
+  // endif;
+  ?>
 </div>
 `;
 }
