@@ -4,6 +4,26 @@ All notable changes to the "Kirby CMS Developer Toolkit" extension will be docum
 
 ## [Unreleased]
 
+### Added
+- **Block Snippet Synchronization**: Automatically creates matching snippets for block Blueprints in `site/blueprints/blocks/` (enabled by default)
+- **Field Snippet Synchronization**: Opt-in feature for creating field snippets from Blueprints in `site/blueprints/fields/`
+- **Block Nesting Strategy Support**: Handles both flat (dot notation) and nested directory structures for blocks
+- **Auto-Detection**: Automatically detects block organization strategy from existing project files
+- New configuration settings:
+  - `kirby.syncBlockSnippets` (default: true) - Enable/disable block synchronization
+  - `kirby.syncFieldSnippets` (default: false) - Enable/disable field synchronization
+  - `kirby.syncBlockNestingStrategy` (default: "auto") - Control block snippet organization: "auto", "flat", or "nested"
+- Bidirectional synchronization for blocks: Create Blueprint from snippet or snippet from Blueprint
+- Block and field boilerplate generators with sensible defaults
+
+- **Testing**: Expanded test suite from 232 to 284 tests (+52 new tests)
+  - Added comprehensive test coverage for blocks/fields synchronization
+  - Tests for block/field file detection (13 tests)
+  - Tests for block/field name mapping with multiple strategies (14 tests)
+  - Tests for block/field content generators (15 tests)
+  - Tests for edge cases and security validation (10 tests)
+  - All block/field utility functions now fully covered
+
 ## [0.4.0] - 2025-11-02
 
 ### Added

@@ -110,3 +110,66 @@ function getTypeForVariable(variable: string): string {
       return 'mixed';
   }
 }
+
+/**
+ * Generates content for a Kirby block snippet file
+ * @param blockName Name of the block (e.g., 'gallery', 'text')
+ */
+export function generateBlockSnippetContent(blockName: string): string {
+  return `<?php
+/**
+ * @var \\Kirby\\Cms\\Block $block
+ */
+?>
+<!-- Block: ${blockName} -->
+<div class="block block-${blockName}">
+  <?php
+  // Access block fields: $block->fieldName()
+  // Example: $block->text(), $block->image(), etc.
+  ?>
+
+  <?php
+  // For nested blocks:
+  // if ($content = $block->content()->toBlocks()):
+  //   foreach ($content as $nestedBlock):
+  //     echo $nestedBlock;
+  //   endforeach;
+  // endif;
+  ?>
+</div>
+`;
+}
+
+/**
+ * Generates content for a Kirby block Blueprint file
+ * @param blockName Name of the block (e.g., 'gallery', 'text')
+ */
+export function generateBlockBlueprintContent(blockName: string): string {
+  const title = blockName.charAt(0).toUpperCase() + blockName.slice(1);
+  return `name: ${title}
+icon: page
+fields:
+  content:
+    type: blocks
+    fieldsets:
+      - heading
+      - text
+`;
+}
+
+/**
+ * Generates content for a Kirby field snippet file
+ * @param fieldName Name of the field (e.g., 'address', 'social-links')
+ */
+export function generateFieldSnippetContent(fieldName: string): string {
+  return `<?php
+/**
+ * @var \\Kirby\\Cms\\Field $field
+ */
+?>
+<!-- Field: ${fieldName} -->
+<div class="field field-${fieldName}">
+  <?= $field->value() ?>
+</div>
+`;
+}

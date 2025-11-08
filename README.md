@@ -81,16 +81,19 @@ class ProjectPage extends Page
 
 ### 2. Blueprint/Template Synchronization
 
-Automatically detect missing counterpart files when you create a Blueprint or Template, and offer to create them with one click.
+Automatically detect missing counterpart files when you create a Blueprint or Template (including blocks and fields), and offer to create them with one click.
 
 **Features:**
 - 🔄 Monitors Blueprint and Template file creation in real-time
 - 📝 Prompts to create missing counterparts automatically
-- ⚙️ Optional Controller and Model file creation
+- ⚙️ Optional Controller and Model file creation (for page templates)
+- 🧩 **NEW: Block snippet synchronization** (enabled by default)
+- 📋 **NEW: Field snippet synchronization** (opt-in)
 - 🎯 Handles nested Blueprint structures (e.g., `blog/post.yml` → `blog.post.php`)
 - 🔕 "Don't ask again" option with workspace-specific memory
 - ⚡ Smart debouncing to avoid notification spam during bulk operations
 - 🛠️ Three behavior modes: Ask (default), Never, Always
+- 📁 Supports both flat (dot notation) and nested directory structures for blocks
 
 **How it works:**
 
@@ -124,9 +127,23 @@ Automatically detect missing counterpart files when you create a Blueprint or Te
   "kirby.syncPromptBehavior": "ask",               // "ask" | "never" | "always"
   "kirby.syncCreateController": false,             // Auto-create controller by default
   "kirby.syncCreateModel": false,                  // Auto-create model by default
+  "kirby.syncBlockSnippets": true,                 // Enable block synchronization
+  "kirby.syncFieldSnippets": false,                // Enable field synchronization (opt-in)
+  "kirby.syncBlockNestingStrategy": "auto",        // "auto" | "flat" | "nested"
   "kirby.syncIgnoreFolders": ["test/", "archive/"] // Exclude patterns
 }
 ```
+
+**Block Synchronization:**
+- Automatically creates matching snippets for block Blueprints in `site/blueprints/blocks/`
+- Supports both flat (`gallery.image.php`) and nested (`gallery/image.php`) directory structures
+- Auto-detects nesting strategy from existing files or uses configured preference
+- Bidirectional: Create Blueprint from snippet or snippet from Blueprint
+
+**Field Synchronization:**
+- Opt-in feature for developers who create custom field snippets
+- Blueprint-first workflow: Only prompts when creating field Blueprints
+- Creates snippets in `site/snippets/fields/` directory
 
 **Behavior Modes:**
 - **"ask"** (default): Show notification with action buttons
@@ -744,13 +761,13 @@ The project includes custom slash commands for on-demand documentation retrieval
 npm run compile      # Compile TypeScript + copy schemas
 npm run watch        # Watch mode for development
 npm run lint         # Run ESLint validation
-npm run test         # Run all 232 tests (compile + lint + test suite)
+npm run test         # Run all 284 tests (compile + lint + test suite)
 ```
 
 **Quality Assurance:**
 - All commits are automatically tested via pre-commit hooks
 - Tests must pass before code can be committed
-- 232 tests covering security, parsing, scaffolding, refactoring, navigation, integration, and build automation
+- 284 tests covering security, parsing, scaffolding, refactoring, navigation, integration, and build automation
 - Zero tolerance for security vulnerabilities
 
 ### Packaging

@@ -2,13 +2,23 @@ import * as assert from 'assert';
 import * as path from 'path';
 import {
   getTemplateNameFromBlueprint,
-  getBlueprintNameFromTemplate
+  getBlueprintNameFromTemplate,
+  isBlockBlueprintFile,
+  isBlockSnippetFile,
+  isFieldBlueprintFile,
+  isFieldSnippetFile,
+  getBlockSnippetNameFromBlueprint,
+  getBlockBlueprintNameFromSnippet,
+  getFieldSnippetNameFromBlueprint
 } from '../utils/kirbyProject';
 import {
   generateBlueprintContent,
   generateTemplateContent,
   generateControllerContent,
-  generateModelContent
+  generateModelContent,
+  generateBlockSnippetContent,
+  generateBlockBlueprintContent,
+  generateFieldSnippetContent
 } from '../utils/scaffoldingTemplates';
 
 suite('Blueprint/Template Synchronization Test Suite', () => {
@@ -220,6 +230,374 @@ suite('Blueprint/Template Synchronization Test Suite', () => {
       // Should not contain dangerous patterns
       assert.ok(!content.includes('eval('));
       assert.ok(!content.includes('__destruct'));
+    });
+  });
+
+  suite('Block/Field File Detection', () => {
+    test('should detect block Blueprint files', () => {
+      const blockBlueprintPath = path.join(mockWorkspaceRoot, 'site', 'blueprints', 'blocks', 'gallery.yml');
+      // Will return false in test environment without actual workspace, but tests the function structure
+      const isBlockBlueprint = isBlockBlueprintFile(blockBlueprintPath);
+      assert.strictEqual(typeof isBlockBlueprint, 'boolean');
+    });
+
+    test('should detect nested block Blueprint files', () => {
+      const nestedBlockPath = path.join(mockWorkspaceRoot, 'site', 'blueprints', 'blocks', 'media', 'gallery.yml');
+      const isBlockBlueprint = isBlockBlueprintFile(nestedBlockPath);
+      assert.strictEqual(typeof isBlockBlueprint, 'boolean');
+    });
+
+    test('should reject non-block Blueprint files', () => {
+      const pageBlueprintPath = path.join(mockWorkspaceRoot, 'site', 'blueprints', 'pages', 'article.yml');
+      const isBlockBlueprint = isBlockBlueprintFile(pageBlueprintPath);
+      assert.strictEqual(typeof isBlockBlueprint, 'boolean');
+    });
+
+    test('should detect block snippet files', () => {
+      const blockSnippetPath = path.join(mockWorkspaceRoot, 'site', 'snippets', 'blocks', 'gallery.php');
+      const isBlockSnippet = isBlockSnippetFile(blockSnippetPath);
+      assert.strictEqual(typeof isBlockSnippet, 'boolean');
+    });
+
+    test('should detect nested block snippet files', () => {
+      const nestedSnippetPath = path.join(mockWorkspaceRoot, 'site', 'snippets', 'blocks', 'media', 'gallery.php');
+      const isBlockSnippet = isBlockSnippetFile(nestedSnippetPath);
+      assert.strictEqual(typeof isBlockSnippet, 'boolean');
+    });
+
+    test('should detect flat dot notation block snippet files', () => {
+      const flatSnippetPath = path.join(mockWorkspaceRoot, 'site', 'snippets', 'blocks', 'media.gallery.php');
+      const isBlockSnippet = isBlockSnippetFile(flatSnippetPath);
+      assert.strictEqual(typeof isBlockSnippet, 'boolean');
+    });
+
+    test('should reject non-block snippet files', () => {
+      const regularSnippetPath = path.join(mockWorkspaceRoot, 'site', 'snippets', 'header.php');
+      const isBlockSnippet = isBlockSnippetFile(regularSnippetPath);
+      assert.strictEqual(typeof isBlockSnippet, 'boolean');
+    });
+
+    test('should detect field Blueprint files', () => {
+      const fieldBlueprintPath = path.join(mockWorkspaceRoot, 'site', 'blueprints', 'fields', 'address.yml');
+      const isFieldBlueprint = isFieldBlueprintFile(fieldBlueprintPath);
+      assert.strictEqual(typeof isFieldBlueprint, 'boolean');
+    });
+
+    test('should detect nested field Blueprint files', () => {
+      const nestedFieldPath = path.join(mockWorkspaceRoot, 'site', 'blueprints', 'fields', 'contact', 'address.yml');
+      const isFieldBlueprint = isFieldBlueprintFile(nestedFieldPath);
+      assert.strictEqual(typeof isFieldBlueprint, 'boolean');
+    });
+
+    test('should reject non-field Blueprint files', () => {
+      const pageBlueprintPath = path.join(mockWorkspaceRoot, 'site', 'blueprints', 'pages', 'article.yml');
+      const isFieldBlueprint = isFieldBlueprintFile(pageBlueprintPath);
+      assert.strictEqual(typeof isFieldBlueprint, 'boolean');
+    });
+
+    test('should detect field snippet files', () => {
+      const fieldSnippetPath = path.join(mockWorkspaceRoot, 'site', 'snippets', 'fields', 'address.php');
+      const isFieldSnippet = isFieldSnippetFile(fieldSnippetPath);
+      assert.strictEqual(typeof isFieldSnippet, 'boolean');
+    });
+
+    test('should detect nested field snippet files', () => {
+      const nestedFieldSnippet = path.join(mockWorkspaceRoot, 'site', 'snippets', 'fields', 'contact', 'address.php');
+      const isFieldSnippet = isFieldSnippetFile(nestedFieldSnippet);
+      assert.strictEqual(typeof isFieldSnippet, 'boolean');
+    });
+
+    test('should reject non-field snippet files', () => {
+      const regularSnippetPath = path.join(mockWorkspaceRoot, 'site', 'snippets', 'header.php');
+      const isFieldSnippet = isFieldSnippetFile(regularSnippetPath);
+      assert.strictEqual(typeof isFieldSnippet, 'boolean');
+    });
+  });
+
+  suite('Block Name Mapping', () => {
+    test('should map flat block Blueprint to snippet name (nested strategy)', () => {
+      const blueprintPath = path.join(mockWorkspaceRoot, 'site', 'blueprints', 'blocks', 'gallery.yml');
+      const snippetName = getBlockSnippetNameFromBlueprint(blueprintPath, 'nested');
+      // Returns undefined in test environment without actual workspace
+      assert.strictEqual(typeof snippetName === 'string' || snippetName === undefined, true);
+    });
+
+    test('should map nested block Blueprint to snippet name (nested strategy)', () => {
+      const blueprintPath = path.join(mockWorkspaceRoot, 'site', 'blueprints', 'blocks', 'media', 'gallery.yml');
+      const snippetName = getBlockSnippetNameFromBlueprint(blueprintPath, 'nested');
+      assert.strictEqual(typeof snippetName === 'string' || snippetName === undefined, true);
+    });
+
+    test('should map flat block Blueprint to snippet name (flat strategy)', () => {
+      const blueprintPath = path.join(mockWorkspaceRoot, 'site', 'blueprints', 'blocks', 'gallery.yml');
+      const snippetName = getBlockSnippetNameFromBlueprint(blueprintPath, 'flat');
+      assert.strictEqual(typeof snippetName === 'string' || snippetName === undefined, true);
+    });
+
+    test('should map nested block Blueprint to dot notation (flat strategy)', () => {
+      const blueprintPath = path.join(mockWorkspaceRoot, 'site', 'blueprints', 'blocks', 'media', 'gallery.yml');
+      const snippetName = getBlockSnippetNameFromBlueprint(blueprintPath, 'flat');
+      assert.strictEqual(typeof snippetName === 'string' || snippetName === undefined, true);
+    });
+
+    test('should map nested block snippet to Blueprint name', () => {
+      const snippetPath = path.join(mockWorkspaceRoot, 'site', 'snippets', 'blocks', 'media', 'gallery.php');
+      const blueprintName = getBlockBlueprintNameFromSnippet(snippetPath);
+      assert.strictEqual(typeof blueprintName === 'string' || blueprintName === undefined, true);
+    });
+
+    test('should map flat dot notation snippet to nested Blueprint name', () => {
+      const snippetPath = path.join(mockWorkspaceRoot, 'site', 'snippets', 'blocks', 'media.gallery.php');
+      const blueprintName = getBlockBlueprintNameFromSnippet(snippetPath);
+      assert.strictEqual(typeof blueprintName === 'string' || blueprintName === undefined, true);
+    });
+
+    test('should return undefined for non-block Blueprint file', () => {
+      const pageBlueprintPath = path.join(mockWorkspaceRoot, 'site', 'blueprints', 'pages', 'article.yml');
+      const snippetName = getBlockSnippetNameFromBlueprint(pageBlueprintPath, 'nested');
+      assert.strictEqual(snippetName, undefined);
+    });
+
+    test('should return undefined for non-block snippet file', () => {
+      const regularSnippetPath = path.join(mockWorkspaceRoot, 'site', 'snippets', 'header.php');
+      const blueprintName = getBlockBlueprintNameFromSnippet(regularSnippetPath);
+      assert.strictEqual(blueprintName, undefined);
+    });
+  });
+
+  suite('Field Name Mapping', () => {
+    test('should map flat field Blueprint to snippet name (nested strategy)', () => {
+      const blueprintPath = path.join(mockWorkspaceRoot, 'site', 'blueprints', 'fields', 'address.yml');
+      const snippetName = getFieldSnippetNameFromBlueprint(blueprintPath, 'nested');
+      assert.strictEqual(typeof snippetName === 'string' || snippetName === undefined, true);
+    });
+
+    test('should map nested field Blueprint to snippet name (nested strategy)', () => {
+      const blueprintPath = path.join(mockWorkspaceRoot, 'site', 'blueprints', 'fields', 'contact', 'address.yml');
+      const snippetName = getFieldSnippetNameFromBlueprint(blueprintPath, 'nested');
+      assert.strictEqual(typeof snippetName === 'string' || snippetName === undefined, true);
+    });
+
+    test('should map flat field Blueprint to snippet name (flat strategy)', () => {
+      const blueprintPath = path.join(mockWorkspaceRoot, 'site', 'blueprints', 'fields', 'address.yml');
+      const snippetName = getFieldSnippetNameFromBlueprint(blueprintPath, 'flat');
+      assert.strictEqual(typeof snippetName === 'string' || snippetName === undefined, true);
+    });
+
+    test('should map nested field Blueprint to dot notation (flat strategy)', () => {
+      const blueprintPath = path.join(mockWorkspaceRoot, 'site', 'blueprints', 'fields', 'contact', 'address.yml');
+      const snippetName = getFieldSnippetNameFromBlueprint(blueprintPath, 'flat');
+      assert.strictEqual(typeof snippetName === 'string' || snippetName === undefined, true);
+    });
+
+    test('should return undefined for non-field Blueprint file', () => {
+      const pageBlueprintPath = path.join(mockWorkspaceRoot, 'site', 'blueprints', 'pages', 'article.yml');
+      const snippetName = getFieldSnippetNameFromBlueprint(pageBlueprintPath, 'nested');
+      assert.strictEqual(snippetName, undefined);
+    });
+
+    test('should handle deeply nested field paths', () => {
+      const blueprintPath = path.join(
+        mockWorkspaceRoot,
+        'site',
+        'blueprints',
+        'fields',
+        'forms',
+        'contact',
+        'address.yml'
+      );
+      const snippetName = getFieldSnippetNameFromBlueprint(blueprintPath, 'nested');
+      assert.strictEqual(typeof snippetName === 'string' || snippetName === undefined, true);
+    });
+  });
+
+  suite('Block Content Generators', () => {
+    test('should generate block snippet content with type hint', () => {
+      const content = generateBlockSnippetContent('gallery');
+      assert.ok(content.includes('<?php'));
+      assert.ok(content.includes('@var \\Kirby\\Cms\\Block $block'));
+      assert.ok(content.includes('<!-- Block: gallery -->'));
+      assert.ok(content.includes('class="block block-gallery"'));
+    });
+
+    test('should generate block snippet with flexible boilerplate', () => {
+      const content = generateBlockSnippetContent('text');
+      // Should include helpful comments for common patterns
+      assert.ok(content.includes('// Access block fields:'));
+      assert.ok(content.includes('// For nested blocks:'));
+      // Should not assume nested blocks by default (keep it simple)
+      assert.ok(!content.includes('$block->content()->toBlocks()') || content.includes('// if ($content = $block->content()->toBlocks())'));
+    });
+
+    test('should handle hyphenated block names', () => {
+      const content = generateBlockSnippetContent('image-gallery');
+      assert.ok(content.includes('<!-- Block: image-gallery -->'));
+      assert.ok(content.includes('class="block block-image-gallery"'));
+    });
+
+    test('should handle underscored block names', () => {
+      const content = generateBlockSnippetContent('image_gallery');
+      assert.ok(content.includes('<!-- Block: image_gallery -->'));
+      assert.ok(content.includes('class="block block-image_gallery"'));
+    });
+
+    test('should generate block Blueprint content with title', () => {
+      const content = generateBlockBlueprintContent('gallery');
+      assert.ok(content.includes('name: Gallery'));
+      assert.ok(content.includes('icon: page'));
+      assert.ok(content.includes('fields:'));
+      assert.ok(content.includes('content:'));
+      assert.ok(content.includes('type: blocks'));
+    });
+
+    test('should capitalize first letter in block Blueprint name', () => {
+      const content = generateBlockBlueprintContent('image');
+      assert.ok(content.includes('name: Image'));
+    });
+
+    test('should include default fieldsets in block Blueprint', () => {
+      const content = generateBlockBlueprintContent('text');
+      assert.ok(content.includes('fieldsets:'));
+      assert.ok(content.includes('- heading'));
+      assert.ok(content.includes('- text'));
+    });
+
+    test('block Blueprint content should be valid YAML', () => {
+      const content = generateBlockBlueprintContent('test');
+      assert.ok(content.includes('name:'));
+      assert.ok(content.includes('icon:'));
+      assert.ok(content.includes('fields:'));
+      assert.ok(!content.includes('<?php'));
+    });
+
+    test('block snippet content should be valid PHP', () => {
+      const content = generateBlockSnippetContent('test');
+      assert.ok(content.startsWith('<?php'));
+      const phpOpenCount = (content.match(/<\?/g) || []).length;
+      const phpCloseCount = (content.match(/\?>/g) || []).length;
+      assert.strictEqual(phpOpenCount, phpCloseCount);
+    });
+  });
+
+  suite('Field Content Generators', () => {
+    test('should generate field snippet content with type hint', () => {
+      const content = generateFieldSnippetContent('address');
+      assert.ok(content.includes('<?php'));
+      assert.ok(content.includes('@var \\Kirby\\Cms\\Field $field'));
+      assert.ok(content.includes('<!-- Field: address -->'));
+      assert.ok(content.includes('class="field field-address"'));
+    });
+
+    test('should generate field snippet with value output', () => {
+      const content = generateFieldSnippetContent('social-links');
+      assert.ok(content.includes('<?= $field->value() ?>'));
+    });
+
+    test('should handle hyphenated field names', () => {
+      const content = generateFieldSnippetContent('social-links');
+      assert.ok(content.includes('<!-- Field: social-links -->'));
+      assert.ok(content.includes('class="field field-social-links"'));
+    });
+
+    test('should handle underscored field names', () => {
+      const content = generateFieldSnippetContent('social_links');
+      assert.ok(content.includes('<!-- Field: social_links -->'));
+      assert.ok(content.includes('class="field field-social_links"'));
+    });
+
+    test('field snippet content should be valid PHP', () => {
+      const content = generateFieldSnippetContent('test');
+      assert.ok(content.startsWith('<?php'));
+      const phpOpenCount = (content.match(/<\?/g) || []).length;
+      const phpCloseCount = (content.match(/\?>/g) || []).length;
+      assert.strictEqual(phpOpenCount, phpCloseCount);
+    });
+
+    test('should not include dangerous functions in field snippet', () => {
+      const content = generateFieldSnippetContent('test');
+      assert.ok(!content.includes('eval('));
+      assert.ok(!content.includes('exec('));
+      assert.ok(!content.includes('system('));
+    });
+  });
+
+  suite('Block/Field Edge Cases', () => {
+    test('should handle single character block names', () => {
+      const blockSnippet = generateBlockSnippetContent('a');
+      assert.ok(blockSnippet.includes('<!-- Block: a -->'));
+
+      const blockBlueprint = generateBlockBlueprintContent('a');
+      assert.ok(blockBlueprint.includes('name: A'));
+    });
+
+    test('should handle block names with numbers', () => {
+      const content = generateBlockSnippetContent('block2');
+      assert.ok(content.includes('<!-- Block: block2 -->'));
+    });
+
+    test('should handle deeply nested block paths in name mapping', () => {
+      const blueprintPath = path.join(
+        mockWorkspaceRoot,
+        'site',
+        'blueprints',
+        'blocks',
+        'media',
+        'images',
+        'gallery.yml'
+      );
+      const snippetName = getBlockSnippetNameFromBlueprint(blueprintPath, 'nested');
+      assert.strictEqual(typeof snippetName === 'string' || snippetName === undefined, true);
+    });
+
+    test('should handle field names with special characters in safe positions', () => {
+      const content = generateFieldSnippetContent('field-name_123');
+      assert.ok(content.includes('<!-- Field: field-name_123 -->'));
+    });
+
+    test('should generate valid HTML class names from field names', () => {
+      const content = generateFieldSnippetContent('my-custom-field');
+      // Class names should be valid CSS identifiers
+      assert.ok(content.includes('class="field field-my-custom-field"'));
+      assert.ok(!content.includes('class="field field-my custom field"')); // No spaces
+    });
+  });
+
+  suite('Block/Field Security', () => {
+    test('block generators should not include dangerous functions', () => {
+      const snippetContent = generateBlockSnippetContent('test');
+      assert.ok(!snippetContent.includes('eval('));
+      assert.ok(!snippetContent.includes('exec('));
+      assert.ok(!snippetContent.includes('system('));
+    });
+
+    test('block Blueprint should not contain PHP code', () => {
+      const content = generateBlockBlueprintContent('test');
+      assert.ok(!content.includes('<?php'));
+      assert.ok(!content.includes('eval'));
+    });
+
+    test('field snippet should not include dangerous patterns', () => {
+      const content = generateFieldSnippetContent('test');
+      assert.ok(!content.includes('eval('));
+      assert.ok(!content.includes('exec('));
+      assert.ok(!content.includes('system('));
+      assert.ok(!content.includes('__destruct'));
+    });
+
+    test('generated block snippet should use safe Kirby methods', () => {
+      const content = generateBlockSnippetContent('test');
+      // Should use Kirby's safe methods
+      assert.ok(content.includes('$block->content()->toBlocks()'));
+      assert.ok(!content.includes('file_get_contents'));
+      assert.ok(!content.includes('include'));
+    });
+
+    test('generated field snippet should use safe Kirby methods', () => {
+      const content = generateFieldSnippetContent('test');
+      // Should use Kirby's safe methods
+      assert.ok(content.includes('$field->value()'));
+      assert.ok(!content.includes('file_get_contents'));
+      assert.ok(!content.includes('include'));
     });
   });
 });

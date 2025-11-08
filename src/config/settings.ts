@@ -43,3 +43,25 @@ export function getBlueprintSchemaPath(): string {
 export function isSnippetCodeLensEnabled(): boolean {
   return getConfig().get<boolean>('showSnippetCodeLens', true);
 }
+
+/**
+ * Check if block snippet synchronization is enabled
+ */
+export function getSyncBlockSnippets(): boolean {
+  return getConfig().get<boolean>('syncBlockSnippets', true);
+}
+
+/**
+ * Check if field snippet synchronization is enabled
+ */
+export function getSyncFieldSnippets(): boolean {
+  return getConfig().get<boolean>('syncFieldSnippets', false);
+}
+
+/**
+ * Get the block nesting strategy
+ * @returns 'auto' (detect from existing files), 'flat' (dot notation), or 'nested' (directories)
+ */
+export function getSyncBlockNestingStrategy(): 'auto' | 'flat' | 'nested' {
+  return getConfig().get<'auto' | 'flat' | 'nested'>('syncBlockNestingStrategy', 'auto');
+}

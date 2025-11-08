@@ -73,7 +73,7 @@ The toolkit adheres to formal **Non-Functional Requirements (NFRs)** documented 
   - `src/integrations/` - Third-party integrations (tailwindIntegration.ts)
   - `src/utils/` - Pure utility functions (kirbyProject.ts, phpParser.ts, yamlParser.ts, tailwindDetector.ts)
   - `src/schemas/` - JSON Schema files for Blueprint validation
-  - `src/test/` - Test files (179 tests across 12 test suites)
+  - `src/test/` - Test files (284 tests across 12 test suites)
 - **Configuration Access**: Centralize VS Code settings access in `config/settings.ts`
 - **Extension Lifecycle**: Follow standard VS Code extension pattern with `activate()` and `deactivate()` functions
 - **Build Process**: TypeScript compilation + schema file copying to `out/` directory
@@ -82,14 +82,14 @@ The toolkit adheres to formal **Non-Functional Requirements (NFRs)** documented 
 
 **Note**: Testing strategy aligns with `quality-attributes` NFRs, particularly Code Maintainability requirements (>80% coverage for core logic, >90% for security-critical paths).
 
-- **Comprehensive Test Suite**: 179 tests covering all major functionality
+- **Comprehensive Test Suite**: 284 tests covering all major functionality
   - **Security Tests** (`src/test/security.test.ts`, `src/test/kirbyProjectExtended.test.ts`): Path traversal protection, input validation, filename validation
   - **Unit Tests** (`src/test/phpParser.test.ts`, `src/test/kirbyProject.test.ts`, `src/test/yamlParser.test.ts`, `src/test/tailwindDetector.test.ts`): Pure utility functions
   - **Feature Tests** (`src/test/typeHints.test.ts`, `src/test/pageTypeScaffolder.test.ts`, `src/test/snippetExtractor.test.ts`, `src/test/blueprintFieldCodeLens.test.ts`, `src/test/fileNavigation.test.ts`): All major features
   - **Integration Tests** (`src/test/extension.test.ts`): VS Code API interactions, command registration
 - **Test Framework**: Mocha + VS Code Extension Test Runner (@vscode/test-cli, @vscode/test-electron)
 - **Test Execution**: All tests run via `npm test` (compile + lint + test suite)
-- **Current Status**: 179/179 tests passing (100% success rate)
+- **Current Status**: 284/284 tests passing (100% success rate)
 - **Automated Testing**: Pre-commit hooks via Husky ensure tests run before every commit
 - **Coverage Target**: >80% code coverage for core logic, >90% for security-critical paths (per `quality-attributes` NFRs)
 - **Test Isolation**: Each test creates unique mock documents to avoid state sharing

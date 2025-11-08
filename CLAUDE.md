@@ -36,7 +36,7 @@ This is a **Visual Studio Code extension** for **Kirby CMS** development with 8 
 
 - **Read First**: [openspec/project.md](openspec/project.md) - Comprehensive project documentation
 - **Tech Stack**: TypeScript 5.9.3 + VS Code Extension API + js-yaml
-- **Testing**: 179 tests across 12 test suites (run `npm test` before commits)
+- **Testing**: 284 tests across 12 test suites (run `npm test` before commits)
 - **Build**: `npm run compile` (TypeScript + schema copying)
 
 ### Key Files
@@ -51,7 +51,7 @@ This is a **Visual Studio Code extension** for **Kirby CMS** development with 8 
 ### Important Rules
 
 - **Security First**: Always validate user inputs, use `resolveSnippetPath()` and `validateFileName()` for file paths
-- **Test Coverage**: All changes must pass 179 tests (enforced by Husky pre-commit hook)
+- **Test Coverage**: All changes must pass 284 tests (enforced by Husky pre-commit hook)
 - **No Kirby Runtime**: Extension runs in VS Code, cannot execute PHP or call Kirby APIs
 - **OpenSpec for Features**: Use OpenSpec workflow for new features/breaking changes
 - **Release Process**: Follow [.claude/release-checklist.md](.claude/release-checklist.md) for publishing new versions
