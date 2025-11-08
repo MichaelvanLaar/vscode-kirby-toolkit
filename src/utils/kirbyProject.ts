@@ -431,6 +431,9 @@ export function isFieldSnippetFile(filePath: string): boolean {
   return relativePath.startsWith('site/snippets/fields/') && filePath.endsWith('.php');
 }
 
+// Cache for nesting strategy detection to avoid repeated filesystem reads
+const nestingStrategyCache = new Map<string, 'flat' | 'nested'>();
+
 /**
  * Detects the block nesting strategy used in the workspace
  * by analyzing existing block snippet files
@@ -438,11 +441,19 @@ export function isFieldSnippetFile(filePath: string): boolean {
  * @returns 'flat' (dot notation) or 'nested' (directories)
  */
 export function detectBlockNestingStrategy(workspaceRoot: string): 'flat' | 'nested' {
+  // Check cache first
+  const cached = nestingStrategyCache.get(workspaceRoot);
+  if (cached) {
+    return cached;
+  }
+
   const blocksDir = path.join(workspaceRoot, 'site', 'snippets', 'blocks');
 
   if (!fs.existsSync(blocksDir)) {
     // Default to nested for new projects (modern convention)
-    return 'nested';
+    const strategy = 'nested';
+    nestingStrategyCache.set(workspaceRoot, strategy);
+    return strategy;
   }
 
   try {
@@ -454,20 +465,56 @@ export function detectBlockNestingStrategy(workspaceRoot: string): 'flat' | 'nes
     // Check if there are any files with dot notation
     const hasFlatFiles = entries.some(entry => entry.isFile() && entry.name.includes('.') && entry.name.endsWith('.php'));
 
+    let strategy: 'flat' | 'nested';
+
     // If both exist, prefer nested (more modern)
     if (hasNestedDirs) {
-      return 'nested';
+      strategy = 'nested';
+    } else if (hasFlatFiles) {
+      strategy = 'flat';
+    } else {
+      // Default to nested if no files exist yet
+      strategy = 'nested';
     }
 
-    if (hasFlatFiles) {
-      return 'flat';
-    }
-
-    // Default to nested if no files exist yet
-    return 'nested';
+    nestingStrategyCache.set(workspaceRoot, strategy);
+    return strategy;
   } catch {
-    return 'nested';
+    const strategy = 'nested';
+    nestingStrategyCache.set(workspaceRoot, strategy);
+    return strategy;
   }
+}
+
+/**
+ * Clears the nesting strategy cache. Useful when files are added/removed.
+ * @param workspaceRoot Optional workspace root to clear specific cache entry
+ */
+export function clearNestingStrategyCache(workspaceRoot?: string): void {
+  if (workspaceRoot) {
+    nestingStrategyCache.delete(workspaceRoot);
+  } else {
+    nestingStrategyCache.clear();
+  }
+}
+
+/**
+ * Validates that a name doesn't contain path traversal or absolute path sequences
+ * @param name Name to validate
+ * @returns true if name is safe, false otherwise
+ */
+function isValidPathComponent(name: string): boolean {
+  // Reject if contains path traversal (.. or ..\\ or ../)
+  if (name.includes('..')) {
+    return false;
+  }
+
+  // Reject if it's an absolute path (starts with / or drive letter like C:)
+  if (path.isAbsolute(name)) {
+    return false;
+  }
+
+  return true;
 }
 
 /**
@@ -493,6 +540,11 @@ export function getBlockSnippetNameFromBlueprint(blueprintPath: string, strategy
   const blockName = relativePath
     .substring(blueprintsPrefix.length)
     .replace(/\.yml$/, '');
+
+  // Validate that the name doesn't contain path traversal or absolute paths
+  if (!isValidPathComponent(blockName)) {
+    return undefined;
+  }
 
   if (strategy === 'flat') {
     // Convert nested paths to dot notation (gallery/image → gallery.image)
@@ -526,6 +578,11 @@ export function getBlockBlueprintNameFromSnippet(snippetPath: string): string | 
     .substring(snippetsPrefix.length)
     .replace(/\.php$/, '');
 
+  // Validate that the name doesn't contain path traversal or absolute paths
+  if (!isValidPathComponent(blockName)) {
+    return undefined;
+  }
+
   // Convert dot notation to nested path (gallery.image → gallery/image)
   return blockName.replace(/\./g, path.sep);
 }
@@ -553,6 +610,11 @@ export function getFieldSnippetNameFromBlueprint(blueprintPath: string, strategy
   const fieldName = relativePath
     .substring(blueprintsPrefix.length)
     .replace(/\.yml$/, '');
+
+  // Validate that the name doesn't contain path traversal or absolute paths
+  if (!isValidPathComponent(fieldName)) {
+    return undefined;
+  }
 
   if (strategy === 'flat') {
     // Convert nested paths to dot notation

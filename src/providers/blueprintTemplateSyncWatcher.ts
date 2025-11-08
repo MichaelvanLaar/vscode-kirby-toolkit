@@ -42,6 +42,7 @@ export class BlueprintTemplateSyncWatcher {
   private blockBlueprintWatcher: vscode.FileSystemWatcher | undefined;
   private blockSnippetWatcher: vscode.FileSystemWatcher | undefined;
   private fieldBlueprintWatcher: vscode.FileSystemWatcher | undefined;
+  private configListener: vscode.Disposable | undefined;
   private debounceTimers: Map<string, NodeJS.Timeout> = new Map();
   private workspaceState: vscode.Memento;
   private activeNotification: boolean = false;
@@ -113,8 +114,11 @@ export class BlueprintTemplateSyncWatcher {
       this.context.subscriptions.push(this.fieldBlueprintWatcher);
     }
 
-    // Listen for configuration changes to restart watchers
-    vscode.workspace.onDidChangeConfiguration((event) => {
+    // Listen for configuration changes to restart watchers (dispose old listener first to prevent duplicates)
+    if (this.configListener) {
+      this.configListener.dispose();
+    }
+    this.configListener = vscode.workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration('kirby.enableBlueprintTemplateSync') ||
           event.affectsConfiguration('kirby.syncBlockSnippets') ||
           event.affectsConfiguration('kirby.syncFieldSnippets')) {
@@ -123,7 +127,7 @@ export class BlueprintTemplateSyncWatcher {
       }
     });
 
-    this.context.subscriptions.push(this.blueprintWatcher, this.templateWatcher);
+    this.context.subscriptions.push(this.blueprintWatcher, this.templateWatcher, this.configListener);
   }
 
   /**
@@ -135,6 +139,7 @@ export class BlueprintTemplateSyncWatcher {
     this.blockBlueprintWatcher?.dispose();
     this.blockSnippetWatcher?.dispose();
     this.fieldBlueprintWatcher?.dispose();
+    this.configListener?.dispose();
 
     // Clear any pending debounce timers
     for (const timer of this.debounceTimers.values()) {
