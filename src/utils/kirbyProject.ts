@@ -713,3 +713,201 @@ export function findMatchingFieldSnippet(blueprintUri: vscode.Uri): string | und
 
   return undefined;
 }
+
+// ============================================================================
+// Snippet Controller Support (Kirby Snippet Controller Plugin)
+// ============================================================================
+
+// Cache the detection result for performance
+let snippetControllerPluginDetected: boolean | undefined;
+
+/**
+ * Detects if the Snippet Controller plugin is installed in the workspace
+ * Checks both composer.json and site/plugins/ directory
+ * @returns True if plugin is detected, false otherwise
+ */
+export function isSnippetControllerPluginInstalled(): boolean {
+  if (snippetControllerPluginDetected !== undefined) {
+    return snippetControllerPluginDetected;
+  }
+
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot) {
+    snippetControllerPluginDetected = false;
+    return false;
+  }
+
+  // Check composer.json for the plugin dependency
+  const composerPath = path.join(workspaceRoot, 'composer.json');
+  if (fs.existsSync(composerPath)) {
+    try {
+      const composerContent = fs.readFileSync(composerPath, 'utf8');
+      if (composerContent.includes('lukaskleinschmidt/kirby-snippet-controller')) {
+        snippetControllerPluginDetected = true;
+        return true;
+      }
+    } catch {
+      // Ignore read errors, continue to next check
+    }
+  }
+
+  // Check site/plugins directory for manual installation
+  const pluginPath = path.join(workspaceRoot, 'site/plugins/kirby-snippet-controller');
+  if (fs.existsSync(pluginPath)) {
+    try {
+      const stats = fs.statSync(pluginPath);
+      if (stats.isDirectory()) {
+        snippetControllerPluginDetected = true;
+        return true;
+      }
+    } catch {
+      // Ignore stat errors
+    }
+  }
+
+  snippetControllerPluginDetected = false;
+  return false;
+}
+
+/**
+ * Clears the snippet controller plugin detection cache
+ * Useful when plugin is installed/uninstalled during extension lifetime
+ */
+export function clearSnippetControllerPluginCache(): void {
+  snippetControllerPluginDetected = undefined;
+}
+
+/**
+ * Checks if a file path is a snippet controller file
+ * @param filePath Absolute path to the file
+ * @returns True if file is a snippet controller, false otherwise
+ */
+export function isSnippetControllerFile(filePath: string): boolean {
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot) {
+    return false;
+  }
+
+  const relativePath = path.relative(workspaceRoot, filePath);
+
+  // Must be in snippets directory and end with .controller.php
+  return relativePath.startsWith('site/snippets/') &&
+         filePath.endsWith('.controller.php');
+}
+
+/**
+ * Resolves a snippet name to its controller file path
+ * @param snippetName Name of the snippet (e.g., 'header' or 'partials/menu')
+ * @returns Absolute path to the controller file, or undefined if workspace not found or invalid name
+ */
+export function resolveSnippetControllerPath(snippetName: string): string | undefined {
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot) {
+    return undefined;
+  }
+
+  // Sanitize snippet name to prevent path traversal
+  const sanitized = sanitizeSnippetName(snippetName);
+  if (!sanitized) {
+    return undefined;
+  }
+
+  const controllerPath = path.join(workspaceRoot, 'site', 'snippets', `${sanitized}.controller.php`);
+
+  // Additional security check: ensure the resolved path is within the snippets directory
+  const snippetsDir = path.join(workspaceRoot, 'site', 'snippets');
+  if (!controllerPath.startsWith(snippetsDir)) {
+    return undefined;
+  }
+
+  return controllerPath;
+}
+
+/**
+ * Checks if a snippet controller file exists
+ * @param snippetName Name of the snippet
+ * @returns True if controller exists, false otherwise
+ */
+export function snippetControllerExists(snippetName: string): boolean {
+  const controllerPath = resolveSnippetControllerPath(snippetName);
+  if (!controllerPath) {
+    return false;
+  }
+  return fs.existsSync(controllerPath);
+}
+
+/**
+ * Resolves a snippet controller file path back to the snippet name
+ * @param controllerPath Absolute path to the controller file
+ * @returns Snippet name (without .php/.controller.php extension), or undefined if invalid
+ */
+export function getSnippetNameFromController(controllerPath: string): string | undefined {
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot || !isSnippetControllerFile(controllerPath)) {
+    return undefined;
+  }
+
+  const relativePath = path.relative(workspaceRoot, controllerPath);
+  const snippetsPrefix = 'site/snippets/';
+
+  if (!relativePath.startsWith(snippetsPrefix)) {
+    return undefined;
+  }
+
+  // Remove prefix and .controller.php extension
+  const snippetName = relativePath
+    .substring(snippetsPrefix.length)
+    .replace(/\.controller\.php$/, '');
+
+  // Validate that the name doesn't contain path traversal or absolute paths
+  if (!isValidPathComponent(snippetName)) {
+    return undefined;
+  }
+
+  return snippetName;
+}
+
+/**
+ * Resolves a snippet controller file path back to its corresponding snippet file path
+ * @param controllerPath Absolute path to the controller file
+ * @returns Absolute path to the snippet file, or undefined if not found
+ */
+export function resolveSnippetFromController(controllerPath: string): string | undefined {
+  const snippetName = getSnippetNameFromController(controllerPath);
+  if (!snippetName) {
+    return undefined;
+  }
+
+  return resolveSnippetPath(snippetName);
+}
+
+/**
+ * Gets the snippet name from a snippet file path
+ * @param snippetPath Absolute path to the snippet file
+ * @returns Snippet name (without .php extension), or undefined if invalid
+ */
+export function getSnippetNameFromPath(snippetPath: string): string | undefined {
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot || !isSnippetFile(snippetPath)) {
+    return undefined;
+  }
+
+  const relativePath = path.relative(workspaceRoot, snippetPath);
+  const snippetsPrefix = 'site/snippets/';
+
+  if (!relativePath.startsWith(snippetsPrefix)) {
+    return undefined;
+  }
+
+  // Remove prefix and .php extension
+  const snippetName = relativePath
+    .substring(snippetsPrefix.length)
+    .replace(/\.php$/, '');
+
+  // Validate that the name doesn't contain path traversal or absolute paths
+  if (!isValidPathComponent(snippetName)) {
+    return undefined;
+  }
+
+  return snippetName;
+}

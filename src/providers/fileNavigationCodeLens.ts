@@ -3,10 +3,17 @@ import {
   isTemplateFile,
   isControllerFile,
   isModelFile,
+  isSnippetFile,
+  isSnippetControllerFile,
   resolveControllerPath,
   resolveModelPath,
-  resolveTemplateFromFile
+  resolveTemplateFromFile,
+  resolveSnippetControllerPath,
+  resolveSnippetFromController,
+  snippetControllerExists,
+  getSnippetNameFromPath
 } from '../utils/kirbyProject';
+import { isSnippetControllerSupportEnabled } from '../config/settings';
 
 /**
  * Provides CodeLens for navigating between related files
@@ -84,6 +91,38 @@ export class FileNavigationCodeLensProvider implements vscode.CodeLensProvider {
       } else {
         codeLenses.push(new vscode.CodeLens(range, {
           title: 'Template not found',
+          command: ''
+        }));
+      }
+    }
+
+    // Snippet file: show controller link (when support enabled)
+    if (isSnippetControllerSupportEnabled() && isSnippetFile(filePath)) {
+      const snippetName = getSnippetNameFromPath(filePath);
+      if (snippetName) {
+        const controllerPath = resolveSnippetControllerPath(snippetName);
+        if (controllerPath && snippetControllerExists(snippetName)) {
+          codeLenses.push(new vscode.CodeLens(range, {
+            title: 'Open Snippet Controller',
+            command: 'kirby.openRelatedFile',
+            arguments: [controllerPath]
+          }));
+        }
+      }
+    }
+
+    // Snippet controller file: show snippet link (when support enabled)
+    if (isSnippetControllerSupportEnabled() && isSnippetControllerFile(filePath)) {
+      const snippetPath = resolveSnippetFromController(filePath);
+      if (snippetPath) {
+        codeLenses.push(new vscode.CodeLens(range, {
+          title: 'Open Snippet',
+          command: 'kirby.openRelatedFile',
+          arguments: [snippetPath]
+        }));
+      } else {
+        codeLenses.push(new vscode.CodeLens(range, {
+          title: 'Snippet not found',
           command: ''
         }));
       }

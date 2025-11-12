@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { isTemplateFile, isSnippetFile } from '../utils/kirbyProject';
-import { getTypeHintVariables } from '../config/settings';
+import { isTemplateFile, isSnippetFile, isSnippetControllerFile } from '../utils/kirbyProject';
+import { getTypeHintVariables, isSnippetControllerSupportEnabled } from '../config/settings';
 
 /**
  * Type mapping for Kirby global variables
@@ -45,9 +45,14 @@ export function hasTypeHints(document: vscode.TextDocument): boolean {
  * @param document The document to inject into
  */
 export async function injectTypeHints(document: vscode.TextDocument): Promise<boolean> {
-  // Check if file is a template or snippet
-  if (!isTemplateFile(document.uri.fsPath) && !isSnippetFile(document.uri.fsPath)) {
-    return false;
+  const filePath = document.uri.fsPath;
+  const isController = isSnippetControllerFile(filePath);
+
+  // Check if file is a template, snippet, or snippet controller (when enabled)
+  if (!isTemplateFile(filePath) && !isSnippetFile(filePath)) {
+    if (!isController || !isSnippetControllerSupportEnabled()) {
+      return false;
+    }
   }
 
   // Check if type-hints already exist
@@ -84,10 +89,13 @@ export async function injectTypeHints(document: vscode.TextDocument): Promise<bo
  */
 export async function handleFileCreation(uri: vscode.Uri): Promise<void> {
   const filePath = uri.fsPath;
+  const isController = isSnippetControllerFile(filePath);
 
-  // Check if it's a template or snippet file
+  // Check if it's a template, snippet, or snippet controller file (when enabled)
   if (!isTemplateFile(filePath) && !isSnippetFile(filePath)) {
-    return;
+    if (!isController || !isSnippetControllerSupportEnabled()) {
+      return;
+    }
   }
 
   try {

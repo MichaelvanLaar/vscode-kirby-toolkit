@@ -65,3 +65,10 @@ export function getSyncFieldSnippets(): boolean {
 export function getSyncBlockNestingStrategy(): 'auto' | 'flat' | 'nested' {
   return getConfig().get<'auto' | 'flat' | 'nested'>('syncBlockNestingStrategy', 'auto');
 }
+
+/**
+ * Check if snippet controller support is enabled
+ */
+export function isSnippetControllerSupportEnabled(): boolean {
+  return getConfig().get<boolean>('enableSnippetControllers', true);
+}
