@@ -38,6 +38,9 @@ let intelephenseIntegration: IntelephenseIntegration | undefined;
 // Output channel for the extension
 let outputChannel: vscode.OutputChannel | undefined;
 
+// Debounce timer for configuration changes
+let configChangeDebounceTimer: NodeJS.Timeout | undefined;
+
 /**
  * Extension activation function
  */
@@ -455,13 +458,22 @@ function registerApiIntelliSenseFeatures(context: vscode.ExtensionContext) {
     }
   );
 
-  // Listen for configuration changes
+  // Listen for configuration changes (with debouncing to prevent rapid re-initialization)
   const configChangeListener = vscode.workspace.onDidChangeConfiguration((e) => {
-    if (e.affectsConfiguration('kirby.enableApiIntelliSense')) {
-      // Re-initialize if setting changed (with error handling)
-      intelephenseIntegration?.initialize().catch(error => {
-        console.error('Failed to reinitialize Intelephense integration:', error);
-      });
+    if (e.affectsConfiguration('kirby.enableApiIntelliSense') ||
+        e.affectsConfiguration('kirby.customStubsPath')) {
+      // Clear existing timer
+      if (configChangeDebounceTimer) {
+        clearTimeout(configChangeDebounceTimer);
+      }
+
+      // Debounce re-initialization to prevent rapid successive calls
+      configChangeDebounceTimer = setTimeout(() => {
+        intelephenseIntegration?.initialize().catch(error => {
+          console.error('Failed to reinitialize Intelephense integration:', error);
+        });
+        configChangeDebounceTimer = undefined;
+      }, 500); // 500ms debounce
     }
   });
 
@@ -490,6 +502,12 @@ export function deactivate() {
   if (buildStatusBar) {
     buildStatusBar.dispose();
     buildStatusBar = undefined;
+  }
+
+  // Clear any pending configuration change timers
+  if (configChangeDebounceTimer) {
+    clearTimeout(configChangeDebounceTimer);
+    configChangeDebounceTimer = undefined;
   }
 
   console.log('Kirby CMS Developer Toolkit deactivated');

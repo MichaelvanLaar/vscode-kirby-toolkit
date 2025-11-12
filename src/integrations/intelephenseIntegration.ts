@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import * as fsPromises from 'fs/promises';
 import * as path from 'path';
 
 /**
@@ -189,12 +190,6 @@ export class IntelephenseIntegration {
         // Normalize to remove any .. or . segments
         const normalizedPath = path.normalize(absolutePath);
 
-        // Check for path traversal attempts
-        if (normalizedPath.includes('..')) {
-            this.logError('Path traversal attempt detected in custom stubs path', new Error('Security violation'));
-            return null;
-        }
-
         // If relative path, ensure it resolves within workspace
         if (!path.isAbsolute(customPath)) {
             const relativePath = path.relative(workspacePath, normalizedPath);
@@ -205,7 +200,10 @@ export class IntelephenseIntegration {
         }
 
         // Additional safety: check the path doesn't point to sensitive system directories
-        const dangerousPaths = ['/etc', '/sys', '/proc', '/dev', 'C:\\Windows', 'C:\\Program Files'];
+        const dangerousPaths = [
+            '/etc', '/sys', '/proc', '/dev', '/root', '/boot',
+            'C:\\Windows', 'C:\\Program Files', 'C:\\Program Files (x86)', 'C:\\System'
+        ];
         if (dangerousPaths.some(dangerous => normalizedPath.startsWith(dangerous))) {
             this.logError('Custom stubs path points to sensitive system directory', new Error('Security violation'));
             return null;
@@ -215,27 +213,36 @@ export class IntelephenseIntegration {
     }
 
     /**
-     * Recursively copies a directory
+     * Recursively copies a directory (async for better performance)
      */
     private async copyDirectory(source: string, target: string): Promise<void> {
         // Create target directory
-        if (!fs.existsSync(target)) {
-            fs.mkdirSync(target, { recursive: true });
+        try {
+            await fsPromises.mkdir(target, { recursive: true });
+        } catch (error) {
+            // Directory might already exist, that's fine
         }
 
         // Read directory contents
-        const entries = fs.readdirSync(source, { withFileTypes: true });
+        const entries = await fsPromises.readdir(source, { withFileTypes: true });
 
-        for (const entry of entries) {
+        // Process entries in parallel for better performance
+        await Promise.all(entries.map(async (entry) => {
             const sourcePath = path.join(source, entry.name);
             const targetPath = path.join(target, entry.name);
 
+            // Skip symlinks for security
+            if (entry.isSymbolicLink()) {
+                this.log(`Skipping symlink: ${sourcePath}`);
+                return;
+            }
+
             if (entry.isDirectory()) {
                 await this.copyDirectory(sourcePath, targetPath);
-            } else {
-                fs.copyFileSync(sourcePath, targetPath);
+            } else if (entry.isFile()) {
+                await fsPromises.copyFile(sourcePath, targetPath);
             }
-        }
+        }));
     }
 
     /**
@@ -249,24 +256,29 @@ export class IntelephenseIntegration {
 
         // Ensure .vscode directory exists
         const vscodeDir = path.dirname(settingsPath);
-        if (!fs.existsSync(vscodeDir)) {
-            fs.mkdirSync(vscodeDir, { recursive: true });
+        try {
+            await fsPromises.mkdir(vscodeDir, { recursive: true });
+        } catch (error) {
+            // Directory might already exist
         }
 
         // Read existing settings or create new
         let settings: any = {};
-        if (fs.existsSync(settingsPath)) {
-            try {
-                const content = fs.readFileSync(settingsPath, 'utf-8');
-                settings = JSON.parse(content);
-            } catch (error) {
+        try {
+            const content = await fsPromises.readFile(settingsPath, 'utf-8');
+            settings = JSON.parse(content);
+        } catch (error) {
+            if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+                // File doesn't exist yet, that's fine
+                this.log('No existing settings.json, will create new');
+            } else {
                 this.logError('Failed to parse existing settings.json', error);
 
                 // Create backup of malformed file
                 const backupPath = settingsPath + '.backup';
                 try {
-                    const originalContent = fs.readFileSync(settingsPath, 'utf-8');
-                    fs.writeFileSync(backupPath, originalContent, 'utf-8');
+                    const originalContent = await fsPromises.readFile(settingsPath, 'utf-8');
+                    await fsPromises.writeFile(backupPath, originalContent, 'utf-8');
                     this.log(`Created backup of malformed settings.json at ${backupPath}`);
                 } catch (backupError) {
                     this.logError('Failed to create backup of settings.json', backupError);
@@ -294,14 +306,19 @@ export class IntelephenseIntegration {
             settings['intelephense.stubs'] = [];
         }
 
+        // Validate and filter array items - ensure all items are strings
+        const validStubs = Array.isArray(currentStubs)
+            ? currentStubs.filter((item): item is string => typeof item === 'string')
+            : [];
+
         // Add stub path if not already present
-        if (!currentStubs.includes(stubPath)) {
-            currentStubs.push(stubPath);
-            settings['intelephense.stubs'] = currentStubs;
+        if (!validStubs.includes(stubPath)) {
+            validStubs.push(stubPath);
+            settings['intelephense.stubs'] = validStubs;
 
             // Write updated settings
             const settingsJson = JSON.stringify(settings, null, 2);
-            fs.writeFileSync(settingsPath, settingsJson, 'utf-8');
+            await fsPromises.writeFile(settingsPath, settingsJson, 'utf-8');
             this.log(`Added ${stubPath} to intelephense.stubs setting`);
         } else {
             this.log('Stub path already in intelephense.stubs setting');
@@ -320,11 +337,18 @@ export class IntelephenseIntegration {
             let needsUpdate = true;
 
             // Read existing .gitignore if it exists
-            if (fs.existsSync(gitignorePath)) {
-                content = fs.readFileSync(gitignorePath, 'utf-8');
+            try {
+                content = await fsPromises.readFile(gitignorePath, 'utf-8');
                 if (content.includes(stubPattern)) {
                     this.log('.gitignore already contains stub pattern');
                     needsUpdate = false;
+                }
+            } catch (error) {
+                if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+                    // File doesn't exist, will be created
+                    this.log('.gitignore does not exist, will create');
+                } else {
+                    throw error;
                 }
             }
 
@@ -335,7 +359,7 @@ export class IntelephenseIntegration {
                 }
                 content += `${stubPattern}\n`;
 
-                fs.writeFileSync(gitignorePath, content, 'utf-8');
+                await fsPromises.writeFile(gitignorePath, content, 'utf-8');
                 this.log('Added stub pattern to .gitignore');
             }
         } catch (error) {
@@ -351,12 +375,8 @@ export class IntelephenseIntegration {
         const gitignorePath = path.join(workspacePath, '.gitignore');
         const stubPattern = this.WORKSPACE_STUBS_DIR + '/';
 
-        if (!fs.existsSync(gitignorePath)) {
-            return;
-        }
-
         try {
-            let content = fs.readFileSync(gitignorePath, 'utf-8');
+            const content = await fsPromises.readFile(gitignorePath, 'utf-8');
             const lines = content.split('\n');
 
             // Remove the stub pattern line
@@ -364,11 +384,15 @@ export class IntelephenseIntegration {
 
             // Only write if something changed
             if (filteredLines.length !== lines.length) {
-                content = filteredLines.join('\n');
-                fs.writeFileSync(gitignorePath, content, 'utf-8');
+                const newContent = filteredLines.join('\n');
+                await fsPromises.writeFile(gitignorePath, newContent, 'utf-8');
                 this.log('Removed stub pattern from .gitignore');
             }
         } catch (error) {
+            if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+                // File doesn't exist, nothing to remove
+                return;
+            }
             // Non-critical error, just log it
             this.logError('Failed to update .gitignore during cleanup (non-critical)', error);
         }
@@ -411,12 +435,8 @@ export class IntelephenseIntegration {
         const settingsPath = path.join(workspacePath, '.vscode', 'settings.json');
         const stubPath = this.WORKSPACE_STUBS_DIR;
 
-        if (!fs.existsSync(settingsPath)) {
-            return;
-        }
-
         try {
-            const content = fs.readFileSync(settingsPath, 'utf-8');
+            const content = await fsPromises.readFile(settingsPath, 'utf-8');
             const settings = JSON.parse(content);
 
             if (settings['intelephense.stubs'] && Array.isArray(settings['intelephense.stubs'])) {
@@ -425,10 +445,14 @@ export class IntelephenseIntegration {
                 );
 
                 const settingsJson = JSON.stringify(settings, null, 2);
-                fs.writeFileSync(settingsPath, settingsJson, 'utf-8');
+                await fsPromises.writeFile(settingsPath, settingsJson, 'utf-8');
                 this.log('Removed stub path from intelephense.stubs setting');
             }
         } catch (error) {
+            if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+                // File doesn't exist, nothing to remove
+                return;
+            }
             this.logError('Failed to update settings.json during cleanup', error);
         }
     }
