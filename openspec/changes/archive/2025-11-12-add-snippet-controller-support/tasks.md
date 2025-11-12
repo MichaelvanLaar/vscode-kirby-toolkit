@@ -5,29 +5,29 @@
 - [ ] 1.1 Add snippet controller plugin detection functions to `src/utils/kirbyProject.ts`
   - [ ] 1.1.1 Implement `isSnippetControllerPluginInstalled()` to check composer.json and site/plugins/
   - [ ] 1.1.2 Cache plugin detection result for performance
-- [ ] 1.2 Add snippet controller file detection and path resolution functions
-  - [ ] 1.2.1 Implement `isSnippetControllerFile(filePath)` to detect `.controller.php` files in snippets directory
+- [x] 1.2 Add snippet controller file detection and path resolution functions
+  - [x] 1.2.1 Implement `isSnippetControllerFile(filePath)` to detect `.controller.php` files in snippets directory
   - [ ] 1.2.2 Implement `resolveSnippetControllerPath(snippetName)` to resolve controller file paths
   - [ ] 1.2.3 Implement `snippetControllerExists(snippetName)` to check controller file existence
   - [ ] 1.2.4 Implement `resolveSnippetFromController(controllerPath)` for reverse resolution
-- [ ] 1.3 Write comprehensive unit tests for new utility functions
+- [x] 1.3 Write comprehensive unit tests for new utility functions
   - [ ] 1.3.1 Test plugin detection with composer.json
   - [ ] 1.3.2 Test plugin detection with site/plugins directory
-  - [ ] 1.3.3 Test controller file detection (top-level and nested)
+  - [x] 1.3.3 Test controller file detection (top-level and nested)
   - [ ] 1.3.4 Test path resolution (both directions)
   - [ ] 1.3.5 Test path traversal protection for controller paths
   - [ ] 1.3.6 Test graceful degradation when plugin not installed
 
 ## 2. Type-Hint Injection Enhancement
 
-- [ ] 2.1 Update `src/providers/typeHintProvider.ts` to recognize snippet controller files
-  - [ ] 2.1.1 Modify file creation handler to detect `.controller.php` files
-  - [ ] 2.1.2 Inject type-hints for snippet controller files
-  - [ ] 2.1.3 Respect `kirby.enableSnippetControllers` configuration
-- [ ] 2.2 Update tests for type-hint injection
-  - [ ] 2.2.1 Test automatic injection on snippet controller creation
-  - [ ] 2.2.2 Test manual command on snippet controller files
-  - [ ] 2.2.3 Test configuration flag for disabling controller support
+- [x] 2.1 Update `src/providers/typeHintProvider.ts` to recognize snippet controller files
+  - [x] 2.1.1 Modify file creation handler to detect `.controller.php` files
+  - [x] 2.1.2 Inject type-hints for snippet controller files
+  - [x] 2.1.3 Respect `kirby.enableSnippetControllers` configuration
+- [x] 2.2 Update tests for type-hint injection
+  - [x] 2.2.1 Test automatic injection on snippet controller creation
+  - [x] 2.2.2 Test manual command on snippet controller files
+  - [x] 2.2.3 Test configuration flag for disabling controller support
 
 ## 3. Snippet Navigation Enhancement
 
@@ -71,12 +71,12 @@
 
 ## 5. Configuration
 
-- [ ] 5.1 Add new configuration options to `package.json`
-  - [ ] 5.1.1 Add `kirby.enableSnippetControllers` (boolean, default: true) - Master switch for controller features
+- [x] 5.1 Add new configuration options to `package.json`
+  - [x] 5.1.1 Add `kirby.enableSnippetControllers` (boolean, default: true) - Master switch for controller features
   - [ ] 5.1.2 Update existing settings descriptions to mention controller support
-- [ ] 5.2 Update `src/config/settings.ts` with new configuration getters
-  - [ ] 5.2.1 Add `isSnippetControllerSupportEnabled()` function
-  - [ ] 5.2.2 Integrate with existing configuration functions
+- [x] 5.2 Update `src/config/settings.ts` with new configuration getters
+  - [x] 5.2.1 Add `isSnippetControllerSupportEnabled()` function
+  - [x] 5.2.2 Integrate with existing configuration functions
 
 ## 6. Documentation
 
