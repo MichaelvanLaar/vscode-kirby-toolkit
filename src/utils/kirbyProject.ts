@@ -54,7 +54,8 @@ export function isSnippetFile(filePath: string): boolean {
   }
 
   const relativePath = path.relative(workspaceRoot, filePath);
-  return relativePath.startsWith('site/snippets/') && filePath.endsWith('.php');
+  // Exclude .controller.php files (those are snippet controllers, not regular snippets)
+  return relativePath.startsWith('site/snippets/') && filePath.endsWith('.php') && !filePath.endsWith('.controller.php');
 }
 
 /**
