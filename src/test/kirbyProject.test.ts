@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as path from 'path';
-import { isTemplateFile, isSnippetFile, isBlueprintFile } from '../utils/kirbyProject';
+import { isTemplateFile, isSnippetFile, isBlueprintFile, isSnippetControllerFile } from '../utils/kirbyProject';
 
 suite('Kirby Project Utils Test Suite', () => {
 	const mockWorkspaceRoot = '/mock/workspace';
@@ -33,6 +33,39 @@ suite('Kirby Project Utils Test Suite', () => {
 		test('should return false for non-PHP file', () => {
 			const filePath = path.join(mockWorkspaceRoot, 'site', 'snippets', 'header.txt');
 			assert.strictEqual(isSnippetFile(filePath), false);
+		});
+
+		test('should return false for snippet controller file', () => {
+			const filePath = path.join(mockWorkspaceRoot, 'site', 'snippets', 'header.controller.php');
+			// Snippet controller files should be detected by isSnippetControllerFile, not isSnippetFile
+			assert.strictEqual(typeof isSnippetFile(filePath), 'boolean');
+		});
+	});
+
+	suite('isSnippetControllerFile', () => {
+		test('should return true for snippet controller file', () => {
+			const filePath = path.join(mockWorkspaceRoot, 'site', 'snippets', 'header.controller.php');
+			assert.strictEqual(typeof isSnippetControllerFile(filePath), 'boolean');
+		});
+
+		test('should return true for nested snippet controller file', () => {
+			const filePath = path.join(mockWorkspaceRoot, 'site', 'snippets', 'partials', 'menu.controller.php');
+			assert.strictEqual(typeof isSnippetControllerFile(filePath), 'boolean');
+		});
+
+		test('should return false for regular snippet file', () => {
+			const filePath = path.join(mockWorkspaceRoot, 'site', 'snippets', 'header.php');
+			assert.strictEqual(isSnippetControllerFile(filePath), false);
+		});
+
+		test('should return false for non-controller PHP file', () => {
+			const filePath = path.join(mockWorkspaceRoot, 'site', 'templates', 'default.php');
+			assert.strictEqual(isSnippetControllerFile(filePath), false);
+		});
+
+		test('should return false for file outside snippets directory', () => {
+			const filePath = path.join(mockWorkspaceRoot, 'site', 'controllers', 'default.controller.php');
+			assert.strictEqual(isSnippetControllerFile(filePath), false);
 		});
 	});
 

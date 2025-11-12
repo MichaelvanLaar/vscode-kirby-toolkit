@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { isTemplateFile, isSnippetFile } from '../utils/kirbyProject';
-import { getTypeHintVariables } from '../config/settings';
+import { isTemplateFile, isSnippetFile, isSnippetControllerFile } from '../utils/kirbyProject';
+import { getTypeHintVariables, isSnippetControllerSupportEnabled } from '../config/settings';
 
 /**
  * Type mapping for Kirby global variables
@@ -45,8 +45,20 @@ export function hasTypeHints(document: vscode.TextDocument): boolean {
  * @param document The document to inject into
  */
 export async function injectTypeHints(document: vscode.TextDocument): Promise<boolean> {
-  // Check if file is a template or snippet
-  if (!isTemplateFile(document.uri.fsPath) && !isSnippetFile(document.uri.fsPath)) {
+  const filePath = document.uri.fsPath;
+
+  // Check if file is a template, snippet, or snippet controller
+  const isTemplate = isTemplateFile(filePath);
+  const isSnippet = isSnippetFile(filePath);
+  const isSnippetController = isSnippetControllerFile(filePath);
+
+  // Check if file is eligible for type-hint injection
+  if (!isTemplate && !isSnippet && !isSnippetController) {
+    return false;
+  }
+
+  // Respect snippet controller configuration
+  if (isSnippetController && !isSnippetControllerSupportEnabled()) {
     return false;
   }
 
@@ -85,8 +97,17 @@ export async function injectTypeHints(document: vscode.TextDocument): Promise<bo
 export async function handleFileCreation(uri: vscode.Uri): Promise<void> {
   const filePath = uri.fsPath;
 
-  // Check if it's a template or snippet file
-  if (!isTemplateFile(filePath) && !isSnippetFile(filePath)) {
+  // Check if it's a template, snippet, or snippet controller file
+  const isTemplate = isTemplateFile(filePath);
+  const isSnippet = isSnippetFile(filePath);
+  const isSnippetController = isSnippetControllerFile(filePath);
+
+  if (!isTemplate && !isSnippet && !isSnippetController) {
+    return;
+  }
+
+  // Respect snippet controller configuration
+  if (isSnippetController && !isSnippetControllerSupportEnabled()) {
     return;
   }
 

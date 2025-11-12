@@ -58,6 +58,21 @@ export function isSnippetFile(filePath: string): boolean {
 }
 
 /**
+ * Checks if a file path is a Kirby snippet controller file
+ * (used with the Snippet Controller plugin: https://github.com/lukaskleinschmidt/kirby-snippet-controller)
+ * @param filePath Absolute path to the file
+ */
+export function isSnippetControllerFile(filePath: string): boolean {
+  const workspaceRoot = getWorkspaceRoot();
+  if (!workspaceRoot) {
+    return false;
+  }
+
+  const relativePath = path.relative(workspaceRoot, filePath);
+  return relativePath.startsWith('site/snippets/') && filePath.endsWith('.controller.php');
+}
+
+/**
  * Checks if a file path is a Kirby Blueprint file
  * @param filePath Absolute path to the file
  */

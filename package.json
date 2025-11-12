@@ -245,6 +245,11 @@
           ],
           "default": "auto",
           "description": "Block snippet organization strategy: 'auto' (detect from existing files), 'flat' (dot notation), 'nested' (directories)"
+        },
+        "kirby.enableSnippetControllers": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable support for snippet controller files (requires Snippet Controller plugin)"
         }
       }
     },
