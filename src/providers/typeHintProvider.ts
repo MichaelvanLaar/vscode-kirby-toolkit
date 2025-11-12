@@ -41,24 +41,33 @@ export function hasTypeHints(document: vscode.TextDocument): boolean {
 }
 
 /**
+ * Checks if a file is eligible for type-hint injection
+ * @param filePath Absolute path to the file
+ * @returns True if file should receive type-hints
+ */
+function isEligibleForTypeHints(filePath: string): boolean {
+  // Template and snippet files always get type-hints
+  if (isTemplateFile(filePath) || isSnippetFile(filePath)) {
+    return true;
+  }
+
+  // Snippet controller files only when support is enabled
+  if (isSnippetControllerFile(filePath)) {
+    return isSnippetControllerSupportEnabled();
+  }
+
+  return false;
+}
+
+/**
  * Injects type-hints into a document at the beginning
  * @param document The document to inject into
  */
 export async function injectTypeHints(document: vscode.TextDocument): Promise<boolean> {
   const filePath = document.uri.fsPath;
 
-  // Check if file is a template, snippet, or snippet controller
-  const isTemplate = isTemplateFile(filePath);
-  const isSnippet = isSnippetFile(filePath);
-  const isSnippetController = isSnippetControllerFile(filePath);
-
   // Check if file is eligible for type-hint injection
-  if (!isTemplate && !isSnippet && !isSnippetController) {
-    return false;
-  }
-
-  // Respect snippet controller configuration
-  if (isSnippetController && !isSnippetControllerSupportEnabled()) {
+  if (!isEligibleForTypeHints(filePath)) {
     return false;
   }
 
@@ -97,17 +106,8 @@ export async function injectTypeHints(document: vscode.TextDocument): Promise<bo
 export async function handleFileCreation(uri: vscode.Uri): Promise<void> {
   const filePath = uri.fsPath;
 
-  // Check if it's a template, snippet, or snippet controller file
-  const isTemplate = isTemplateFile(filePath);
-  const isSnippet = isSnippetFile(filePath);
-  const isSnippetController = isSnippetControllerFile(filePath);
-
-  if (!isTemplate && !isSnippet && !isSnippetController) {
-    return;
-  }
-
-  // Respect snippet controller configuration
-  if (isSnippetController && !isSnippetControllerSupportEnabled()) {
+  // Check if file is eligible for type-hint injection
+  if (!isEligibleForTypeHints(filePath)) {
     return;
   }
 

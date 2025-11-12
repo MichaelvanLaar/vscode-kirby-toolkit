@@ -451,20 +451,35 @@ Due to VS Code Terminal API constraints, the build integration has the following
 }
 ```
 
-### 10. Snippet Navigation
+### 10. Snippet Navigation & Controller Support
 
-Quickly navigate from `snippet()` function calls to their corresponding snippet files.
+Quickly navigate from `snippet()` function calls to their corresponding snippet files, and seamlessly work with snippet controllers when using the [Kirby Snippet Controller plugin](https://github.com/lukaskleinschmidt/kirby-snippet-controller).
 
 **Features:**
 - 🔗 CodeLens links above `snippet()` calls
 - ⚡ Go-to-Definition support (F12, Ctrl+Click)
 - 👁️ Peek Definition support
 - 🗂️ Support for nested snippets (e.g., `snippet('partials/menu')`)
+- 🎮 **NEW: Snippet Controller support** - Navigate between snippets and their controllers
+- 🔍 **NEW: Automatic plugin detection** - Detects Kirby Snippet Controller plugin via composer.json or site/plugins/
+- 📝 **NEW: Type-hint injection** - Automatic type-hints for snippet controller files
+- 🧭 **NEW: Bidirectional navigation** - Navigate from snippets to controllers and vice versa
 
 **Usage:**
-- Click the "Open Snippet" link above any `snippet()` call
-- Or use F12 / Ctrl+Click (Cmd+Click on macOS) on the snippet name
-- Works in both templates and snippets
+- Click the "Open Snippet" or "Open Controller" link above any `snippet()` call
+- Or use F12 / Ctrl+Click (Cmd+Click on macOS) on the snippet name to see both targets
+- Navigate between snippet and controller files using CodeLens at the top of each file
+- Works in templates, snippets, and snippet controllers
+
+**Snippet Controller Support:**
+
+When the [Kirby Snippet Controller plugin](https://github.com/lukaskleinschmidt/kirby-snippet-controller) is detected in your project:
+- CodeLens shows both "Open Snippet" and "Open Controller" links above `snippet()` calls
+- F12 (Go-to-Definition) shows both snippet and controller as navigation targets
+- Snippet files display "Open Snippet Controller" CodeLens when a controller exists
+- Controller files display "Open Snippet" CodeLens to navigate back
+- Automatic type-hint injection when creating new snippet controller files
+- Supports nested snippets (e.g., `partials/menu.controller.php`)
 
 ## Requirements
 
@@ -493,6 +508,7 @@ This extension contributes the following settings:
 * `kirby.showSnippetCodeLens`: Show/hide CodeLens links above snippet() calls (default: `true`)
 * `kirby.showControllerNavigation`: Show/hide navigation to controller files from templates (default: `true`)
 * `kirby.showModelNavigation`: Show/hide navigation to model files from templates (default: `true`)
+* `kirby.enableSnippetControllers`: Enable/disable snippet controller support (navigation, type-hints, CodeLens) (default: `true`)
 
 ### Blueprint/Template Synchronization
 * `kirby.enableBlueprintTemplateSync`: Enable/disable automatic Blueprint/Template sync prompts (default: `true`)

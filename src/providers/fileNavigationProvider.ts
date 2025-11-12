@@ -3,10 +3,18 @@ import {
   isTemplateFile,
   isControllerFile,
   isModelFile,
+  isSnippetFile,
+  isSnippetControllerFile,
   resolveControllerPath,
   resolveModelPath,
-  resolveTemplateFromFile
+  resolveTemplateFromFile,
+  resolveSnippetControllerPath,
+  resolveSnippetFromController,
+  snippetControllerExists,
+  snippetExists,
+  getSnippetNameFromPath
 } from '../utils/kirbyProject';
+import { isSnippetControllerSupportEnabled } from '../config/settings';
 
 /**
  * Provides Definition navigation for template/controller/model files
@@ -47,6 +55,33 @@ export class FileNavigationDefinitionProvider implements vscode.DefinitionProvid
           vscode.Uri.file(templatePath),
           new vscode.Position(0, 0)
         ));
+      }
+    }
+
+    // Navigate from snippet to controller (when support enabled)
+    if (isSnippetControllerSupportEnabled()) {
+      if (isSnippetFile(filePath)) {
+        const snippetName = getSnippetNameFromPath(filePath);
+        if (snippetName) {
+          const controllerPath = resolveSnippetControllerPath(snippetName);
+          if (controllerPath && snippetControllerExists(snippetName)) {
+            locations.push(new vscode.Location(
+              vscode.Uri.file(controllerPath),
+              new vscode.Position(0, 0)
+            ));
+          }
+        }
+      }
+
+      // Navigate from controller back to snippet
+      if (isSnippetControllerFile(filePath)) {
+        const snippetPath = resolveSnippetFromController(filePath);
+        if (snippetPath && snippetExists(getSnippetNameFromPath(snippetPath) || '')) {
+          locations.push(new vscode.Location(
+            vscode.Uri.file(snippetPath),
+            new vscode.Position(0, 0)
+          ));
+        }
       }
     }
 

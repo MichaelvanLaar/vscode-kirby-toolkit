@@ -5,6 +5,20 @@ All notable changes to the "Kirby CMS Developer Toolkit" extension will be docum
 ## [Unreleased]
 
 ### Added
+- **Snippet Controller Support**: Full support for the [Kirby Snippet Controller plugin](https://github.com/lukaskleinschmidt/kirby-snippet-controller)
+  - Automatic plugin detection via composer.json or site/plugins/ directory
+  - Enhanced snippet navigation to include controller files
+  - CodeLens displays both "Open Snippet" and "Open Controller" links above `snippet()` calls when controller exists
+  - Go-to-Definition (F12) shows both snippet and controller as navigation targets
+  - Bidirectional navigation: Navigate from snippet to controller and vice versa
+  - CodeLens in snippet files shows "Open Snippet Controller" when controller exists
+  - CodeLens in controller files shows "Open Snippet" to navigate back
+  - Automatic type-hint injection for snippet controller files (`.controller.php`)
+  - Support for nested snippet controllers (e.g., `partials/menu.controller.php`)
+  - New configuration setting: `kirby.enableSnippetControllers` (default: true)
+  - Security: Path traversal protection for controller file resolution
+  - Graceful degradation when plugin is not installed
+
 - **Block Snippet Synchronization**: Automatically creates matching snippets for block Blueprints in `site/blueprints/blocks/` (enabled by default)
 - **Field Snippet Synchronization**: Opt-in feature for creating field snippets from Blueprints in `site/blueprints/fields/`
 - **Block Nesting Strategy Support**: Handles both flat (dot notation) and nested directory structures for blocks

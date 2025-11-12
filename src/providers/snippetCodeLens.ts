@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { findSnippetCalls } from '../utils/phpParser';
-import { isTemplateFile, isSnippetFile } from '../utils/kirbyProject';
-import { isSnippetCodeLensEnabled } from '../config/settings';
+import { isTemplateFile, isSnippetFile, snippetControllerExists, resolveSnippetControllerPath } from '../utils/kirbyProject';
+import { isSnippetCodeLensEnabled, isSnippetControllerSupportEnabled } from '../config/settings';
 
 /**
  * Provides CodeLens for snippet() function calls
@@ -37,19 +37,31 @@ export class SnippetCodeLensProvider implements vscode.CodeLensProvider {
 
     const snippetCalls = findSnippetCalls(document);
     const codeLenses: vscode.CodeLens[] = [];
+    const controllerSupportEnabled = isSnippetControllerSupportEnabled();
 
     for (const call of snippetCalls) {
       // Create a range for the entire line (for better visual placement)
       const lineRange = document.lineAt(call.line).range;
 
-      const codeLens = new vscode.CodeLens(lineRange, {
+      // Always add the "Open Snippet" CodeLens
+      const snippetCodeLens = new vscode.CodeLens(lineRange, {
         title: '$(link) Open Snippet',
         tooltip: `Open snippet: ${call.snippetName}`,
         command: 'kirby.openSnippet',
         arguments: [call.snippetName]
       });
+      codeLenses.push(snippetCodeLens);
 
-      codeLenses.push(codeLens);
+      // Check if controller exists and add "Open Controller" CodeLens
+      if (controllerSupportEnabled && snippetControllerExists(call.snippetName)) {
+        const controllerCodeLens = new vscode.CodeLens(lineRange, {
+          title: '$(file-code) Open Controller',
+          tooltip: `Open snippet controller: ${call.snippetName}.controller.php`,
+          command: 'kirby.openSnippetController',
+          arguments: [call.snippetName]
+        });
+        codeLenses.push(controllerCodeLens);
+      }
     }
 
     return codeLenses;

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { detectKirbyProject, resolveSnippetPath, snippetExists } from './utils/kirbyProject';
-import { isAutoInjectTypeHintsEnabled } from './config/settings';
+import { detectKirbyProject, resolveSnippetPath, snippetExists, resolveSnippetControllerPath, snippetControllerExists, clearSnippetControllerPluginCache } from './utils/kirbyProject';
+import { isAutoInjectTypeHintsEnabled, isSnippetControllerSupportEnabled } from './config/settings';
 import { injectTypeHints, handleFileCreation } from './providers/typeHintProvider';
 import { SnippetCodeLensProvider } from './providers/snippetCodeLens';
 import { SnippetDefinitionProvider } from './providers/snippetDefinition';
@@ -150,18 +150,79 @@ function registerSnippetNavigationFeatures(context: vscode.ExtensionContext) {
     }
   );
 
+  // Register command to open snippet controller
+  const openSnippetControllerCommand = vscode.commands.registerCommand(
+    'kirby.openSnippetController',
+    async (snippetName: string) => {
+      if (!snippetName) {
+        vscode.window.showErrorMessage('No snippet name provided');
+        return;
+      }
+
+      // Check if controller support is enabled
+      if (!isSnippetControllerSupportEnabled()) {
+        return;
+      }
+
+      // Check if controller exists
+      if (!snippetControllerExists(snippetName)) {
+        vscode.window.showErrorMessage(`Snippet controller not found: site/snippets/${snippetName}.controller.php`);
+        return;
+      }
+
+      // Resolve and open controller
+      const controllerPath = resolveSnippetControllerPath(snippetName);
+      if (controllerPath) {
+        const uri = vscode.Uri.file(controllerPath);
+        const document = await vscode.workspace.openTextDocument(uri);
+        await vscode.window.showTextDocument(document);
+      }
+    }
+  );
+
   // Listen for configuration changes to refresh CodeLens
   const configChangeListener = vscode.workspace.onDidChangeConfiguration((e) => {
-    if (e.affectsConfiguration('kirby.showSnippetCodeLens')) {
+    if (e.affectsConfiguration('kirby.showSnippetCodeLens') ||
+        e.affectsConfiguration('kirby.enableSnippetControllers')) {
       codeLensProvider.refresh();
     }
+  });
+
+  // Watch for plugin installation/uninstallation
+  // Watch composer.json for plugin changes
+  const composerWatcher = vscode.workspace.createFileSystemWatcher('**/composer.json');
+  composerWatcher.onDidChange(() => {
+    clearSnippetControllerPluginCache();
+    codeLensProvider.refresh();
+  });
+  composerWatcher.onDidCreate(() => {
+    clearSnippetControllerPluginCache();
+    codeLensProvider.refresh();
+  });
+  composerWatcher.onDidDelete(() => {
+    clearSnippetControllerPluginCache();
+    codeLensProvider.refresh();
+  });
+
+  // Watch site/plugins/kirby-snippet-controller directory
+  const pluginDirWatcher = vscode.workspace.createFileSystemWatcher('**/site/plugins/kirby-snippet-controller/**');
+  pluginDirWatcher.onDidCreate(() => {
+    clearSnippetControllerPluginCache();
+    codeLensProvider.refresh();
+  });
+  pluginDirWatcher.onDidDelete(() => {
+    clearSnippetControllerPluginCache();
+    codeLensProvider.refresh();
   });
 
   context.subscriptions.push(
     codeLensDisposable,
     definitionDisposable,
     openSnippetCommand,
-    configChangeListener
+    openSnippetControllerCommand,
+    configChangeListener,
+    composerWatcher,
+    pluginDirWatcher
   );
 }
 

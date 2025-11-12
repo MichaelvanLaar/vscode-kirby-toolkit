@@ -249,7 +249,7 @@
         "kirby.enableSnippetControllers": {
           "type": "boolean",
           "default": true,
-          "description": "Enable support for snippet controller files (requires Snippet Controller plugin)"
+          "description": "Enable support for Kirby Snippet Controller plugin (navigation, type-hints, and CodeLens for snippet controllers)"
         }
       }
     },
