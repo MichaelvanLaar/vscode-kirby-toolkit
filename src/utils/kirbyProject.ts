@@ -722,18 +722,12 @@ export function findMatchingFieldSnippet(blueprintUri: vscode.Uri): string | und
 let snippetControllerPluginDetected: boolean | undefined;
 
 /**
- * Detects if the Snippet Controller plugin is installed in the workspace
- * Checks both composer.json and site/plugins/ directory
+ * Performs the actual plugin detection by checking composer.json and site/plugins/
  * @returns True if plugin is detected, false otherwise
  */
-export function isSnippetControllerPluginInstalled(): boolean {
-  if (snippetControllerPluginDetected !== undefined) {
-    return snippetControllerPluginDetected;
-  }
-
+function detectSnippetControllerPlugin(): boolean {
   const workspaceRoot = getWorkspaceRoot();
   if (!workspaceRoot) {
-    snippetControllerPluginDetected = false;
     return false;
   }
 
@@ -743,7 +737,6 @@ export function isSnippetControllerPluginInstalled(): boolean {
     try {
       const composerContent = fs.readFileSync(composerPath, 'utf8');
       if (composerContent.includes('lukaskleinschmidt/kirby-snippet-controller')) {
-        snippetControllerPluginDetected = true;
         return true;
       }
     } catch {
@@ -757,7 +750,6 @@ export function isSnippetControllerPluginInstalled(): boolean {
     try {
       const stats = fs.statSync(pluginPath);
       if (stats.isDirectory()) {
-        snippetControllerPluginDetected = true;
         return true;
       }
     } catch {
@@ -765,13 +757,26 @@ export function isSnippetControllerPluginInstalled(): boolean {
     }
   }
 
-  snippetControllerPluginDetected = false;
   return false;
 }
 
 /**
- * Clears the snippet controller plugin detection cache
- * Useful when plugin is installed/uninstalled during extension lifetime
+ * Detects if the Snippet Controller plugin is installed in the workspace
+ * Checks both composer.json and site/plugins/ directory
+ * @returns True if plugin is detected, false otherwise
+ */
+export function isSnippetControllerPluginInstalled(): boolean {
+  if (snippetControllerPluginDetected !== undefined) {
+    return snippetControllerPluginDetected;
+  }
+
+  snippetControllerPluginDetected = detectSnippetControllerPlugin();
+  return snippetControllerPluginDetected;
+}
+
+/**
+ * Clears the snippet controller plugin detection cache and re-detects
+ * Called when composer.json or site/plugins/ changes
  */
 export function clearSnippetControllerPluginCache(): void {
   snippetControllerPluginDetected = undefined;

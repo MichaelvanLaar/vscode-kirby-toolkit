@@ -41,18 +41,34 @@ export function hasTypeHints(document: vscode.TextDocument): boolean {
 }
 
 /**
+ * Checks if a file is eligible for type-hint injection
+ * @param filePath Absolute path to the file
+ * @returns True if file should receive type-hints
+ */
+function isEligibleForTypeHints(filePath: string): boolean {
+  // Template and snippet files always get type-hints
+  if (isTemplateFile(filePath) || isSnippetFile(filePath)) {
+    return true;
+  }
+
+  // Snippet controller files only when support is enabled
+  if (isSnippetControllerFile(filePath)) {
+    return isSnippetControllerSupportEnabled();
+  }
+
+  return false;
+}
+
+/**
  * Injects type-hints into a document at the beginning
  * @param document The document to inject into
  */
 export async function injectTypeHints(document: vscode.TextDocument): Promise<boolean> {
   const filePath = document.uri.fsPath;
-  const isController = isSnippetControllerFile(filePath);
 
-  // Check if file is a template, snippet, or snippet controller (when enabled)
-  if (!isTemplateFile(filePath) && !isSnippetFile(filePath)) {
-    if (!isController || !isSnippetControllerSupportEnabled()) {
-      return false;
-    }
+  // Check if file is eligible for type-hint injection
+  if (!isEligibleForTypeHints(filePath)) {
+    return false;
   }
 
   // Check if type-hints already exist
@@ -89,13 +105,10 @@ export async function injectTypeHints(document: vscode.TextDocument): Promise<bo
  */
 export async function handleFileCreation(uri: vscode.Uri): Promise<void> {
   const filePath = uri.fsPath;
-  const isController = isSnippetControllerFile(filePath);
 
-  // Check if it's a template, snippet, or snippet controller file (when enabled)
-  if (!isTemplateFile(filePath) && !isSnippetFile(filePath)) {
-    if (!isController || !isSnippetControllerSupportEnabled()) {
-      return;
-    }
+  // Check if file is eligible for type-hint injection
+  if (!isEligibleForTypeHints(filePath)) {
+    return;
   }
 
   try {

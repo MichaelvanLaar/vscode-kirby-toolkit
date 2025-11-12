@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { detectKirbyProject, resolveSnippetPath, snippetExists, resolveSnippetControllerPath, snippetControllerExists } from './utils/kirbyProject';
+import { detectKirbyProject, resolveSnippetPath, snippetExists, resolveSnippetControllerPath, snippetControllerExists, clearSnippetControllerPluginCache } from './utils/kirbyProject';
 import { isAutoInjectTypeHintsEnabled, isSnippetControllerSupportEnabled } from './config/settings';
 import { injectTypeHints, handleFileCreation } from './providers/typeHintProvider';
 import { SnippetCodeLensProvider } from './providers/snippetCodeLens';
@@ -188,12 +188,41 @@ function registerSnippetNavigationFeatures(context: vscode.ExtensionContext) {
     }
   });
 
+  // Watch for plugin installation/uninstallation
+  // Watch composer.json for plugin changes
+  const composerWatcher = vscode.workspace.createFileSystemWatcher('**/composer.json');
+  composerWatcher.onDidChange(() => {
+    clearSnippetControllerPluginCache();
+    codeLensProvider.refresh();
+  });
+  composerWatcher.onDidCreate(() => {
+    clearSnippetControllerPluginCache();
+    codeLensProvider.refresh();
+  });
+  composerWatcher.onDidDelete(() => {
+    clearSnippetControllerPluginCache();
+    codeLensProvider.refresh();
+  });
+
+  // Watch site/plugins/kirby-snippet-controller directory
+  const pluginDirWatcher = vscode.workspace.createFileSystemWatcher('**/site/plugins/kirby-snippet-controller/**');
+  pluginDirWatcher.onDidCreate(() => {
+    clearSnippetControllerPluginCache();
+    codeLensProvider.refresh();
+  });
+  pluginDirWatcher.onDidDelete(() => {
+    clearSnippetControllerPluginCache();
+    codeLensProvider.refresh();
+  });
+
   context.subscriptions.push(
     codeLensDisposable,
     definitionDisposable,
     openSnippetCommand,
     openSnippetControllerCommand,
-    configChangeListener
+    configChangeListener,
+    composerWatcher,
+    pluginDirWatcher
   );
 }
 
