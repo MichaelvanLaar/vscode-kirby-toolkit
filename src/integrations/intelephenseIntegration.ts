@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as fsPromises from 'fs/promises';
 import * as path from 'path';
+import * as crypto from 'crypto';
 
 /**
  * IntelephenseIntegration manages the integration with the Intelephense PHP language server
@@ -11,6 +12,7 @@ export class IntelephenseIntegration {
     private context: vscode.ExtensionContext;
     private outputChannel: vscode.OutputChannel;
     private stubsInstalled: boolean = false;
+    private aborted: boolean = false;
 
     /**
      * The relative path from workspace root where stubs will be copied
@@ -32,6 +34,12 @@ export class IntelephenseIntegration {
      * copying stub files, and configuring workspace settings.
      */
     public async initialize(): Promise<boolean> {
+        // Check if aborted
+        if (this.aborted) {
+            this.log('Initialization aborted');
+            return false;
+        }
+
         const config = vscode.workspace.getConfiguration('kirby');
         const enabled = config.get<boolean>('enableApiIntelliSense', true);
 
@@ -55,9 +63,15 @@ export class IntelephenseIntegration {
 
         // Initialize stubs
         try {
+            if (this.aborted) { return false; }
             await this.initializeStubs(workspaceFolder.uri.fsPath);
+
+            if (this.aborted) { return false; }
             await this.configureIntelephense(workspaceFolder.uri.fsPath);
+
+            if (this.aborted) { return false; }
             await this.updateGitignore(workspaceFolder.uri.fsPath);
+
             this.stubsInstalled = true;
             this.log('Kirby API stubs initialized successfully');
             return true;
@@ -69,6 +83,14 @@ export class IntelephenseIntegration {
             );
             return false;
         }
+    }
+
+    /**
+     * Aborts any ongoing operations (called during extension deactivation)
+     */
+    public abort(): void {
+        this.aborted = true;
+        this.log('Aborting ongoing operations');
     }
 
     /**
@@ -108,17 +130,11 @@ export class IntelephenseIntegration {
     }
 
     /**
-     * Generates a simple hash from the workspace path for storage keys
+     * Generates a cryptographic hash from the workspace path for storage keys
      */
     private getWorkspaceHash(workspacePath: string): string {
-        // Simple hash function (not cryptographic, just for uniqueness)
-        let hash = 0;
-        for (let i = 0; i < workspacePath.length; i++) {
-            const char = workspacePath.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // Convert to 32-bit integer
-        }
-        return Math.abs(hash).toString(36);
+        // Use SHA-256 for collision-resistant workspace identification
+        return crypto.createHash('sha256').update(workspacePath).digest('hex').substring(0, 16);
     }
 
     /**
@@ -168,7 +184,52 @@ export class IntelephenseIntegration {
 
         // Copy stubs recursively
         await this.copyDirectory(sourceDir, targetDir);
+
+        // Verify stub file integrity
+        if (!this.verifyStubIntegrity(targetDir)) {
+            throw new Error('Stub file integrity verification failed');
+        }
+
         this.log('Stub files copied successfully');
+    }
+
+    /**
+     * Verifies that copied stub files are valid and contain expected content
+     */
+    private verifyStubIntegrity(stubsDir: string): boolean {
+        try {
+            // Check for required core stub files
+            const requiredFiles = [
+                'Cms/Page.php',
+                'Cms/Site.php',
+                'Cms/File.php',
+                'Cms/User.php',
+                'Cms/App.php',
+                'Cms/Field.php',
+                'kirby-core.php'
+            ];
+
+            for (const file of requiredFiles) {
+                const filePath = path.join(stubsDir, file);
+                if (!fs.existsSync(filePath)) {
+                    this.logError(`Required stub file missing: ${file}`, new Error('Integrity check failed'));
+                    return false;
+                }
+
+                // Verify it's a valid PHP file (starts with <?php)
+                const content = fs.readFileSync(filePath, 'utf-8');
+                if (!content.trim().startsWith('<?php')) {
+                    this.logError(`Invalid PHP stub file: ${file}`, new Error('Integrity check failed'));
+                    return false;
+                }
+            }
+
+            this.log('Stub file integrity verification passed');
+            return true;
+        } catch (error) {
+            this.logError('Stub integrity verification error', error);
+            return false;
+        }
     }
 
     /**
@@ -200,10 +261,11 @@ export class IntelephenseIntegration {
         }
 
         // Additional safety: check the path doesn't point to sensitive system directories
-        const dangerousPaths = [
-            '/etc', '/sys', '/proc', '/dev', '/root', '/boot',
-            'C:\\Windows', 'C:\\Program Files', 'C:\\Program Files (x86)', 'C:\\System'
-        ];
+        // Platform-specific dangerous paths
+        const dangerousPaths = process.platform === 'win32'
+            ? ['C:\\Windows', 'C:\\Program Files', 'C:\\Program Files (x86)', 'C:\\System', 'C:\\ProgramData']
+            : ['/etc', '/sys', '/proc', '/dev', '/root', '/boot', '/usr', '/var'];
+
         if (dangerousPaths.some(dangerous => normalizedPath.startsWith(dangerous))) {
             this.logError('Custom stubs path points to sensitive system directory', new Error('Security violation'));
             return null;
@@ -213,9 +275,14 @@ export class IntelephenseIntegration {
     }
 
     /**
-     * Recursively copies a directory (async for better performance)
+     * Recursively copies a directory (async with concurrency limiting)
      */
     private async copyDirectory(source: string, target: string): Promise<void> {
+        // Check if aborted
+        if (this.aborted) {
+            return;
+        }
+
         // Create target directory
         try {
             await fsPromises.mkdir(target, { recursive: true });
@@ -226,23 +293,35 @@ export class IntelephenseIntegration {
         // Read directory contents
         const entries = await fsPromises.readdir(source, { withFileTypes: true });
 
-        // Process entries in parallel for better performance
-        await Promise.all(entries.map(async (entry) => {
-            const sourcePath = path.join(source, entry.name);
-            const targetPath = path.join(target, entry.name);
-
-            // Skip symlinks for security
-            if (entry.isSymbolicLink()) {
-                this.log(`Skipping symlink: ${sourcePath}`);
+        // Process entries with concurrency limiting (10 at a time) to avoid exhausting file descriptors
+        const batchSize = 10;
+        for (let i = 0; i < entries.length; i += batchSize) {
+            if (this.aborted) {
                 return;
             }
 
-            if (entry.isDirectory()) {
-                await this.copyDirectory(sourcePath, targetPath);
-            } else if (entry.isFile()) {
-                await fsPromises.copyFile(sourcePath, targetPath);
-            }
-        }));
+            const batch = entries.slice(i, i + batchSize);
+            await Promise.all(batch.map(async (entry) => {
+                if (this.aborted) {
+                    return;
+                }
+
+                const sourcePath = path.join(source, entry.name);
+                const targetPath = path.join(target, entry.name);
+
+                // Skip symlinks for security
+                if (entry.isSymbolicLink()) {
+                    this.log(`Skipping symlink: ${sourcePath}`);
+                    return;
+                }
+
+                if (entry.isDirectory()) {
+                    await this.copyDirectory(sourcePath, targetPath);
+                } else if (entry.isFile()) {
+                    await fsPromises.copyFile(sourcePath, targetPath);
+                }
+            }));
+        }
     }
 
     /**
@@ -284,15 +363,12 @@ export class IntelephenseIntegration {
                     this.logError('Failed to create backup of settings.json', backupError);
                 }
 
-                // Warn user
+                // Warn user and show output channel
+                this.outputChannel.show();
                 void vscode.window.showWarningMessage(
-                    'Failed to parse .vscode/settings.json. A backup has been created. Using default settings for Intelephense configuration.',
-                    'Show Output'
-                ).then(choice => {
-                    if (choice === 'Show Output') {
-                        this.outputChannel.show();
-                    }
-                });
+                    'Failed to parse .vscode/settings.json. A backup has been created. Check the output for details.',
+                    'Dismiss'
+                );
 
                 // Use empty settings object
                 settings = {};

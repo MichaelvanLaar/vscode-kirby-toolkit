@@ -510,5 +510,16 @@ export function deactivate() {
     configChangeDebounceTimer = undefined;
   }
 
+  // Abort any ongoing Intelephense operations
+  if (intelephenseIntegration) {
+    intelephenseIntegration.abort();
+  }
+
+  // Dispose output channel
+  if (outputChannel) {
+    outputChannel.dispose();
+    outputChannel = undefined;
+  }
+
   console.log('Kirby CMS Developer Toolkit deactivated');
 }
