@@ -129,6 +129,7 @@ export class IntelephenseIntegration {
         // Skip if stubs already exist
         if (fs.existsSync(targetDir)) {
             this.log('Stub directory already exists, skipping copy');
+            this.stubsInstalled = true;
             return;
         }
 
@@ -139,9 +140,22 @@ export class IntelephenseIntegration {
         const customStubsPath = config.get<string>('customStubsPath', '');
 
         let sourceDir: string;
-        if (customStubsPath && fs.existsSync(customStubsPath)) {
-            sourceDir = customStubsPath;
-            this.log(`Using custom stubs from ${customStubsPath}`);
+        if (customStubsPath) {
+            // Validate custom stubs path for security
+            const validatedPath = this.validateStubsPath(customStubsPath, workspacePath);
+            if (!validatedPath) {
+                this.logError('Invalid custom stubs path, falling back to bundled stubs', new Error('Path validation failed'));
+                void vscode.window.showWarningMessage(
+                    'Invalid custom stubs path in settings. Using bundled stubs instead.'
+                );
+                sourceDir = path.join(this.context.extensionPath, 'out', 'stubs', 'kirby-api');
+            } else if (!fs.existsSync(validatedPath)) {
+                this.log(`Custom stubs path does not exist: ${validatedPath}, using bundled stubs`);
+                sourceDir = path.join(this.context.extensionPath, 'out', 'stubs', 'kirby-api');
+            } else {
+                sourceDir = validatedPath;
+                this.log(`Using custom stubs from ${validatedPath}`);
+            }
         } else {
             sourceDir = path.join(this.context.extensionPath, 'out', 'stubs', 'kirby-api');
             this.log(`Using bundled stubs from ${sourceDir}`);
@@ -154,6 +168,50 @@ export class IntelephenseIntegration {
         // Copy stubs recursively
         await this.copyDirectory(sourceDir, targetDir);
         this.log('Stub files copied successfully');
+    }
+
+    /**
+     * Validates a custom stubs path for security
+     * @param customPath The custom path from settings
+     * @param workspacePath The workspace root path
+     * @returns The validated absolute path, or null if invalid
+     */
+    private validateStubsPath(customPath: string, workspacePath: string): string | null {
+        if (!customPath || typeof customPath !== 'string') {
+            return null;
+        }
+
+        // Resolve to absolute path
+        const absolutePath = path.isAbsolute(customPath)
+            ? path.resolve(customPath)
+            : path.resolve(workspacePath, customPath);
+
+        // Normalize to remove any .. or . segments
+        const normalizedPath = path.normalize(absolutePath);
+
+        // Check for path traversal attempts
+        if (normalizedPath.includes('..')) {
+            this.logError('Path traversal attempt detected in custom stubs path', new Error('Security violation'));
+            return null;
+        }
+
+        // If relative path, ensure it resolves within workspace
+        if (!path.isAbsolute(customPath)) {
+            const relativePath = path.relative(workspacePath, normalizedPath);
+            if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+                this.logError('Custom stubs path escapes workspace directory', new Error('Security violation'));
+                return null;
+            }
+        }
+
+        // Additional safety: check the path doesn't point to sensitive system directories
+        const dangerousPaths = ['/etc', '/sys', '/proc', '/dev', 'C:\\Windows', 'C:\\Program Files'];
+        if (dangerousPaths.some(dangerous => normalizedPath.startsWith(dangerous))) {
+            this.logError('Custom stubs path points to sensitive system directory', new Error('Security violation'));
+            return null;
+        }
+
+        return normalizedPath;
     }
 
     /**
@@ -202,7 +260,30 @@ export class IntelephenseIntegration {
                 const content = fs.readFileSync(settingsPath, 'utf-8');
                 settings = JSON.parse(content);
             } catch (error) {
-                this.logError('Failed to parse existing settings.json, creating new', error);
+                this.logError('Failed to parse existing settings.json', error);
+
+                // Create backup of malformed file
+                const backupPath = settingsPath + '.backup';
+                try {
+                    const originalContent = fs.readFileSync(settingsPath, 'utf-8');
+                    fs.writeFileSync(backupPath, originalContent, 'utf-8');
+                    this.log(`Created backup of malformed settings.json at ${backupPath}`);
+                } catch (backupError) {
+                    this.logError('Failed to create backup of settings.json', backupError);
+                }
+
+                // Warn user
+                void vscode.window.showWarningMessage(
+                    'Failed to parse .vscode/settings.json. A backup has been created. Using default settings for Intelephense configuration.',
+                    'Show Output'
+                ).then(choice => {
+                    if (choice === 'Show Output') {
+                        this.outputChannel.show();
+                    }
+                });
+
+                // Use empty settings object
+                settings = {};
             }
         }
 
@@ -264,6 +345,36 @@ export class IntelephenseIntegration {
     }
 
     /**
+     * Removes the stub directory pattern from .gitignore
+     */
+    private async removeFromGitignore(workspacePath: string): Promise<void> {
+        const gitignorePath = path.join(workspacePath, '.gitignore');
+        const stubPattern = this.WORKSPACE_STUBS_DIR + '/';
+
+        if (!fs.existsSync(gitignorePath)) {
+            return;
+        }
+
+        try {
+            let content = fs.readFileSync(gitignorePath, 'utf-8');
+            const lines = content.split('\n');
+
+            // Remove the stub pattern line
+            const filteredLines = lines.filter(line => line.trim() !== stubPattern.trim());
+
+            // Only write if something changed
+            if (filteredLines.length !== lines.length) {
+                content = filteredLines.join('\n');
+                fs.writeFileSync(gitignorePath, content, 'utf-8');
+                this.log('Removed stub pattern from .gitignore');
+            }
+        } catch (error) {
+            // Non-critical error, just log it
+            this.logError('Failed to update .gitignore during cleanup (non-critical)', error);
+        }
+    }
+
+    /**
      * Removes stub files and cleans up Intelephense configuration
      */
     public async cleanupStubs(): Promise<void> {
@@ -285,6 +396,9 @@ export class IntelephenseIntegration {
 
         // Remove from Intelephense settings
         await this.removeFromIntelephenseSettings(workspacePath);
+
+        // Remove from .gitignore
+        await this.removeFromGitignore(workspacePath);
 
         this.stubsInstalled = false;
         this.log('Stub cleanup completed');

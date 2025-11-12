@@ -412,15 +412,17 @@ function registerApiIntelliSenseFeatures(context: vscode.ExtensionContext) {
   // Initialize Intelephense integration
   intelephenseIntegration = new IntelephenseIntegration(context, outputChannel);
 
-  // Initialize stubs asynchronously
-  void intelephenseIntegration.initialize();
+  // Initialize stubs asynchronously (with error handling)
+  intelephenseIntegration.initialize().catch(error => {
+    console.error('Failed to initialize Intelephense integration:', error);
+  });
 
   // Register remove API stubs command
   const removeApiStubsCommand = vscode.commands.registerCommand(
     'kirby.removeApiStubs',
     async () => {
       if (!intelephenseIntegration) {
-        vscode.window.showErrorMessage('API IntelliSense not initialized');
+        void vscode.window.showErrorMessage('API IntelliSense not initialized');
         return;
       }
 
@@ -439,7 +441,7 @@ function registerApiIntelliSenseFeatures(context: vscode.ExtensionContext) {
     'kirby.reinstallApiStubs',
     async () => {
       if (!intelephenseIntegration) {
-        vscode.window.showErrorMessage('API IntelliSense not initialized');
+        void vscode.window.showErrorMessage('API IntelliSense not initialized');
         return;
       }
 
@@ -456,8 +458,10 @@ function registerApiIntelliSenseFeatures(context: vscode.ExtensionContext) {
   // Listen for configuration changes
   const configChangeListener = vscode.workspace.onDidChangeConfiguration((e) => {
     if (e.affectsConfiguration('kirby.enableApiIntelliSense')) {
-      // Re-initialize if setting changed
-      void intelephenseIntegration?.initialize();
+      // Re-initialize if setting changed (with error handling)
+      intelephenseIntegration?.initialize().catch(error => {
+        console.error('Failed to reinitialize Intelephense integration:', error);
+      });
     }
   });
 
