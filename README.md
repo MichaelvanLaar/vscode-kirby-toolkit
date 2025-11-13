@@ -342,7 +342,79 @@ Automatically inject PHPDoc type hints for Kirby's global variables (`$page`, `$
 - Create a new PHP file in `site/templates/` or `site/snippets/` - type hints are added automatically
 - For existing files, use the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run `Kirby: Add Type Hints`
 
-### 8. Blueprint Schema Validation
+### 8. Kirby API IntelliSense
+
+Intelligent autocompletion and inline documentation for Kirby CMS API classes and methods, powered by PHP stubs and the Intelephense language server.
+
+**Features:**
+- 💡 Smart autocompletion for Kirby core classes (`Page`, `Site`, `File`, `User`, `Kirby`, `Field`)
+- 📖 Inline documentation with hover tooltips
+- 🔗 Links to official Kirby documentation
+- ⛓️ Method chaining support with return type inference
+- 🎯 Signature help for method parameters
+- 🔧 Automatic stub installation and configuration
+- 🎛️ Optional custom stub paths for advanced use cases
+
+**How it works:**
+1. Extension automatically detects Intelephense PHP language server
+2. Copies Kirby API stub files to `.vscode/kirby-stubs/` in your workspace
+3. Configures Intelephense to index the stubs
+4. You get instant autocompletion and documentation for all Kirby API methods!
+
+**Usage:**
+Simply type `$page->` in any PHP file and see all available Page methods with descriptions:
+- `$page->title()` - Returns the page's title field
+- `$page->children()` - Returns a collection of child pages
+- `$page->url()` - Returns the page's URL
+- And many more...
+
+**Supported Classes:**
+- **Page**: `title()`, `children()`, `parent()`, `url()`, `files()`, `images()`, etc.
+- **Site**: `children()`, `find()`, `pages()`, `users()`, `homePage()`, etc.
+- **File**: `url()`, `filename()`, `type()`, `size()`, `resize()`, `crop()`, etc.
+- **User**: `email()`, `name()`, `role()`, `isAdmin()`, `avatar()`, etc.
+- **Kirby/App**: `site()`, `users()`, `option()`, `roots()`, `urls()`, etc.
+- **Field**: `value()`, `isEmpty()`, `html()`, `markdown()`, `kirbytext()`, etc.
+- **Collections**: `Pages`, `Files`, `Users` with methods like `find()`, `first()`, `sortBy()`, etc.
+
+**Example:**
+```php
+<?php
+// Type $page-> and see all available methods with descriptions
+$page->title()->value()  // ← IntelliSense shows Field methods
+$page->children()->first()->url()  // ← Chaining works perfectly
+$site->find('blog')->children()  // ← All Kirby classes supported
+```
+
+**Requirements:**
+- [Intelephense](https://marketplace.visualstudio.com/items?itemName=bmewburn.vscode-intelephense-client) extension (free version works)
+- Recommended: Disable or configure other PHP extensions to avoid conflicts
+
+**Troubleshooting:**
+If stubs aren't appearing in IntelliSense:
+1. Check that Intelephense extension is installed and enabled
+2. Verify `.vscode/kirby-stubs/` directory exists in your workspace
+3. Check workspace `settings.json` for `intelephense.stubs` configuration
+4. Run `Kirby: Reinstall API Stubs` command to force refresh
+5. Restart VS Code to trigger Intelephense reindex
+
+**Commands:**
+- `Kirby: Remove API Stubs` - Clean up stub files
+- `Kirby: Reinstall API Stubs` - Force reinstall/refresh stubs
+
+**Configuration:**
+```json
+{
+  "kirby.enableApiIntelliSense": true,     // Master toggle
+  "kirby.kirbyVersion": "4.0",             // API version (currently only 4.0)
+  "kirby.customStubsPath": ""              // Custom stub directory (optional)
+}
+```
+
+**What's Included:**
+Based on **Kirby 4.0 API** with comprehensive method signatures and PHPDoc annotations extracted from official documentation.
+
+### 9. Blueprint Schema Validation
 
 JSON Schema validation and auto-completion for Kirby Blueprint YAML files.
 
@@ -359,7 +431,7 @@ JSON Schema validation and auto-completion for Kirby Blueprint YAML files.
 **Schema Attribution:**
 This extension bundles the [Kirby Blueprint JSON Schema](https://github.com/bnomei/kirby-schema) by [bnomei](https://github.com/bnomei), licensed under MIT.
 
-### 9. Frontend Build Integration
+### 10. Frontend Build Integration
 
 Automatically manage Node.js build processes (Vite, Webpack, Tailwind CLI) directly from VS Code with integrated terminal management and status monitoring.
 
@@ -451,7 +523,7 @@ Due to VS Code Terminal API constraints, the build integration has the following
 }
 ```
 
-### 10. Snippet Navigation & Controller Support
+### 11. Snippet Navigation & Controller Support
 
 Quickly navigate from `snippet()` function calls to their corresponding snippet files, and seamlessly work with snippet controllers when using the [Kirby Snippet Controller plugin](https://github.com/lukaskleinschmidt/kirby-snippet-controller).
 
@@ -526,6 +598,11 @@ This extension contributes the following settings:
 
 ### Tailwind CSS
 * `kirby.enableTailwindIntegration`: Enable/disable automatic Tailwind CSS integration (default: `true`)
+
+### API IntelliSense
+* `kirby.enableApiIntelliSense`: Enable/disable Kirby API IntelliSense via Intelephense (default: `true`)
+* `kirby.kirbyVersion`: Kirby CMS version for API stubs (default: `"4.0"`)
+* `kirby.customStubsPath`: Custom path to Kirby API stub files (default: `""`)
 
 ## Installation
 

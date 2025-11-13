@@ -87,6 +87,14 @@
       {
         "command": "kirby.showBuildTerminal",
         "title": "Kirby: Show Build Terminal"
+      },
+      {
+        "command": "kirby.removeApiStubs",
+        "title": "Kirby: Remove API Stubs"
+      },
+      {
+        "command": "kirby.reinstallApiStubs",
+        "title": "Kirby: Reinstall API Stubs"
       }
     ],
     "menus": {
@@ -250,6 +258,21 @@
           "type": "boolean",
           "default": true,
           "description": "Enable support for Kirby Snippet Controller plugin (navigation, type-hints, and CodeLens for snippet controllers)"
+        },
+        "kirby.enableApiIntelliSense": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable intelligent autocompletion and documentation for Kirby API classes via Intelephense"
+        },
+        "kirby.kirbyVersion": {
+          "type": "string",
+          "default": "4.0",
+          "description": "Kirby CMS version for API stubs (currently only 4.0 is supported)"
+        },
+        "kirby.customStubsPath": {
+          "type": "string",
+          "default": "",
+          "description": "Custom path to Kirby API stub files (leave empty to use bundled stubs)"
         }
       }
     },
@@ -262,8 +285,9 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./ && npm run copy-schemas",
+    "compile": "tsc -p ./ && npm run copy-schemas && npm run copy-stubs",
     "copy-schemas": "mkdir -p out/schemas && cp src/schemas/*.json out/schemas/ && cp src/schemas/LICENSE out/schemas/",
+    "copy-stubs": "mkdir -p out/stubs && cp -r src/stubs/kirby-api out/stubs/ && cp src/stubs/README.md out/stubs/",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",

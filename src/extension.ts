@@ -24,12 +24,22 @@ import {
   runBuildOnce,
   showBuildTerminal
 } from './commands/buildCommands';
+import { IntelephenseIntegration } from './integrations/intelephenseIntegration';
 
 // Global reference to sync watcher
 let syncWatcher: BlueprintTemplateSyncWatcher | undefined;
 
 // Global reference to build status bar
 let buildStatusBar: vscode.StatusBarItem | undefined;
+
+// Global reference to Intelephense integration
+let intelephenseIntegration: IntelephenseIntegration | undefined;
+
+// Output channel for the extension
+let outputChannel: vscode.OutputChannel | undefined;
+
+// Debounce timer for configuration changes
+let configChangeDebounceTimer: NodeJS.Timeout | undefined;
 
 /**
  * Extension activation function
@@ -45,6 +55,10 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   console.log('Kirby project detected - activating features');
+
+  // Create output channel
+  outputChannel = vscode.window.createOutputChannel('Kirby Toolkit');
+  context.subscriptions.push(outputChannel);
 
   // Register Type-Hint Injection
   registerTypeHintFeatures(context);
@@ -74,6 +88,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register Build Integration
   registerBuildIntegrationFeatures(context);
+
+  // Register API IntelliSense
+  registerApiIntelliSenseFeatures(context);
 
   console.log('Kirby CMS Developer Toolkit activated successfully!');
 }
@@ -387,6 +404,87 @@ function updateBuildStatusBar(state: BuildState) {
 }
 
 /**
+ * Register API IntelliSense features
+ */
+function registerApiIntelliSenseFeatures(context: vscode.ExtensionContext) {
+  if (!outputChannel) {
+    console.error('Output channel not initialized');
+    return;
+  }
+
+  // Initialize Intelephense integration
+  intelephenseIntegration = new IntelephenseIntegration(context, outputChannel);
+
+  // Initialize stubs asynchronously (with error handling)
+  intelephenseIntegration.initialize().catch(error => {
+    console.error('Failed to initialize Intelephense integration:', error);
+  });
+
+  // Register remove API stubs command
+  const removeApiStubsCommand = vscode.commands.registerCommand(
+    'kirby.removeApiStubs',
+    async () => {
+      if (!intelephenseIntegration) {
+        void vscode.window.showErrorMessage('API IntelliSense not initialized');
+        return;
+      }
+
+      try {
+        await intelephenseIntegration.cleanupStubs();
+        void vscode.window.showInformationMessage('Kirby API stubs removed successfully');
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        void vscode.window.showErrorMessage(`Failed to remove API stubs: ${errorMessage}`);
+      }
+    }
+  );
+
+  // Register reinstall API stubs command
+  const reinstallApiStubsCommand = vscode.commands.registerCommand(
+    'kirby.reinstallApiStubs',
+    async () => {
+      if (!intelephenseIntegration) {
+        void vscode.window.showErrorMessage('API IntelliSense not initialized');
+        return;
+      }
+
+      try {
+        await intelephenseIntegration.reinstallStubs();
+        void vscode.window.showInformationMessage('Kirby API stubs reinstalled successfully');
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        void vscode.window.showErrorMessage(`Failed to reinstall API stubs: ${errorMessage}`);
+      }
+    }
+  );
+
+  // Listen for configuration changes (with debouncing to prevent rapid re-initialization)
+  const configChangeListener = vscode.workspace.onDidChangeConfiguration((e) => {
+    if (e.affectsConfiguration('kirby.enableApiIntelliSense') ||
+        e.affectsConfiguration('kirby.customStubsPath')) {
+      // Clear existing timer
+      if (configChangeDebounceTimer) {
+        clearTimeout(configChangeDebounceTimer);
+      }
+
+      // Debounce re-initialization to prevent rapid successive calls
+      configChangeDebounceTimer = setTimeout(() => {
+        intelephenseIntegration?.initialize().catch(error => {
+          console.error('Failed to reinitialize Intelephense integration:', error);
+        });
+        configChangeDebounceTimer = undefined;
+      }, 500); // 500ms debounce
+    }
+  });
+
+  context.subscriptions.push(
+    removeApiStubsCommand,
+    reinstallApiStubsCommand,
+    configChangeListener
+  );
+}
+
+/**
  * Extension deactivation function
  */
 export function deactivate() {
@@ -404,6 +502,23 @@ export function deactivate() {
   if (buildStatusBar) {
     buildStatusBar.dispose();
     buildStatusBar = undefined;
+  }
+
+  // Clear any pending configuration change timers
+  if (configChangeDebounceTimer) {
+    clearTimeout(configChangeDebounceTimer);
+    configChangeDebounceTimer = undefined;
+  }
+
+  // Abort any ongoing Intelephense operations
+  if (intelephenseIntegration) {
+    intelephenseIntegration.abort();
+  }
+
+  // Dispose output channel
+  if (outputChannel) {
+    outputChannel.dispose();
+    outputChannel = undefined;
   }
 
   console.log('Kirby CMS Developer Toolkit deactivated');

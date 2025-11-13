@@ -5,6 +5,32 @@ All notable changes to the "Kirby CMS Developer Toolkit" extension will be docum
 ## [Unreleased]
 
 ### Added
+
+- **Kirby API IntelliSense**: Intelligent autocompletion and inline documentation for Kirby CMS API
+  - Automatic detection and integration with Intelephense PHP language server
+  - PHP stub files for core Kirby classes: Page, Site, File, User, Kirby/App, Field
+  - Collection classes: Pages, Files, Users with all methods
+  - Smart autocompletion with method signatures and return types
+  - Hover documentation with descriptions and links to official Kirby docs
+  - Method chaining support with return type inference
+  - Signature help for method parameters
+  - Automatic stub installation to `.vscode/kirby-stubs/` directory
+  - Automatic Intelephense configuration via workspace settings
+  - Automatic `.gitignore` updates to exclude stub directory
+  - One-time informational prompt to install Intelephense (if not present)
+  - Commands:
+    - `Kirby: Remove API Stubs` - Clean up stub files
+    - `Kirby: Reinstall API Stubs` - Force reinstall/refresh stubs
+  - Configuration settings:
+    - `kirby.enableApiIntelliSense` (default: true) - Master toggle
+    - `kirby.kirbyVersion` (default: "4.0") - Kirby version for stubs
+    - `kirby.customStubsPath` (default: "") - Custom stub directory path
+  - Based on Kirby 4.0 API with comprehensive PHPDoc annotations
+  - Graceful degradation when Intelephense is not installed
+  - Security: Path validation and file system error handling
+  - Workspace-specific prompt memory to avoid repeated notifications
+  - Full test coverage with 12 test suites
+
 - **Snippet Controller Support**: Full support for the [Kirby Snippet Controller plugin](https://github.com/lukaskleinschmidt/kirby-snippet-controller)
   - Automatic plugin detection via composer.json or site/plugins/ directory
   - Enhanced snippet navigation to include controller files
