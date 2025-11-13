@@ -186,7 +186,7 @@ export class IntelephenseIntegration {
         await this.copyDirectory(sourceDir, targetDir);
 
         // Verify stub file integrity
-        if (!this.verifyStubIntegrity(targetDir)) {
+        if (!await this.verifyStubIntegrity(targetDir)) {
             throw new Error('Stub file integrity verification failed');
         }
 
@@ -195,8 +195,9 @@ export class IntelephenseIntegration {
 
     /**
      * Verifies that copied stub files are valid and contain expected content
+     * Uses parallel file reads with Promise.all() to avoid blocking the extension host
      */
-    private verifyStubIntegrity(stubsDir: string): boolean {
+    private async verifyStubIntegrity(stubsDir: string): Promise<boolean> {
         try {
             // Check for required core stub files
             const requiredFiles = [
@@ -209,23 +210,41 @@ export class IntelephenseIntegration {
                 'kirby-core.php'
             ];
 
-            for (const file of requiredFiles) {
-                const filePath = path.join(stubsDir, file);
-                if (!fs.existsSync(filePath)) {
-                    this.logError(`Required stub file missing: ${file}`, new Error('Integrity check failed'));
-                    return false;
-                }
+            // Parallelize file existence and content checks
+            const verificationResults = await Promise.all(
+                requiredFiles.map(async (file) => {
+                    const filePath = path.join(stubsDir, file);
 
-                // Verify it's a valid PHP file (starts with <?php)
-                const content = fs.readFileSync(filePath, 'utf-8');
-                if (!content.trim().startsWith('<?php')) {
-                    this.logError(`Invalid PHP stub file: ${file}`, new Error('Integrity check failed'));
-                    return false;
-                }
+                    // Check file existence
+                    try {
+                        await fsPromises.access(filePath);
+                    } catch {
+                        this.logError(`Required stub file missing: ${file}`, new Error('Integrity check failed'));
+                        return false;
+                    }
+
+                    // Verify it's a valid PHP file (starts with <?php)
+                    try {
+                        const content = await fsPromises.readFile(filePath, 'utf-8');
+                        if (!content.trim().startsWith('<?php')) {
+                            this.logError(`Invalid PHP stub file: ${file}`, new Error('Integrity check failed'));
+                            return false;
+                        }
+                    } catch (error) {
+                        this.logError(`Failed to read stub file: ${file}`, error);
+                        return false;
+                    }
+
+                    return true;
+                })
+            );
+
+            // Check if all verifications passed
+            const allValid = verificationResults.every(result => result === true);
+            if (allValid) {
+                this.log('Stub file integrity verification passed');
             }
-
-            this.log('Stub file integrity verification passed');
-            return true;
+            return allValid;
         } catch (error) {
             this.logError('Stub integrity verification error', error);
             return false;
@@ -353,22 +372,36 @@ export class IntelephenseIntegration {
             } else {
                 this.logError('Failed to parse existing settings.json', error);
 
-                // Create backup of malformed file
-                const backupPath = settingsPath + '.backup';
+                // Create timestamped backup of malformed file
+                const timestamp = new Date().toISOString().replace(/:/g, '-').replace(/\..+/, '');
+                const backupPath = `${settingsPath}.backup-${timestamp}`;
+                let backupCreated = false;
                 try {
                     const originalContent = await fsPromises.readFile(settingsPath, 'utf-8');
                     await fsPromises.writeFile(backupPath, originalContent, 'utf-8');
                     this.log(`Created backup of malformed settings.json at ${backupPath}`);
+                    backupCreated = true;
                 } catch (backupError) {
                     this.logError('Failed to create backup of settings.json', backupError);
                 }
 
-                // Warn user and show output channel
+                // Warn user and show output channel with actionable options
                 this.outputChannel.show();
-                void vscode.window.showWarningMessage(
-                    'Failed to parse .vscode/settings.json. A backup has been created. Check the output for details.',
+                const choice = await vscode.window.showWarningMessage(
+                    'Failed to parse .vscode/settings.json. A timestamped backup has been created.',
+                    backupCreated ? 'Open Backup' : 'Dismiss',
+                    'Open settings.json',
                     'Dismiss'
                 );
+
+                // Handle user action
+                if (choice === 'Open Backup' && backupCreated) {
+                    const backupUri = vscode.Uri.file(backupPath);
+                    await vscode.window.showTextDocument(backupUri);
+                } else if (choice === 'Open settings.json') {
+                    const settingsUri = vscode.Uri.file(settingsPath);
+                    await vscode.window.showTextDocument(settingsUri);
+                }
 
                 // Use empty settings object
                 settings = {};

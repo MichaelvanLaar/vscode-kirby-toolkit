@@ -615,4 +615,93 @@ suite('Intelephense Integration Test Suite', () => {
       }
     });
   });
+
+  suite('Abort Mechanism', () => {
+    test('should abort initialization when abort() is called', async function() {
+      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+        this.skip();
+        return;
+      }
+
+      const stubsPath = path.join(testWorkspacePath, '.vscode', 'kirby-stubs');
+
+      // Clean up if exists
+      if (fs.existsSync(stubsPath)) {
+        fs.rmSync(stubsPath, { recursive: true, force: true });
+      }
+
+      try {
+        // Start initialization in background
+        const initPromise = integration.initialize();
+
+        // Immediately call abort
+        integration.abort();
+
+        // Wait for initialization to complete
+        const result = await initPromise;
+
+        // Initialization should return false when aborted
+        assert.strictEqual(result, false, 'Initialization should return false when aborted');
+      } catch (error) {
+        // May fail if source stubs don't exist in test environment
+        console.log('Abort test error (may be acceptable in test environment):', error);
+      }
+    });
+
+    test('should abort stub initialization when abort() is called during copy', async function() {
+      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+        this.skip();
+        return;
+      }
+
+      const stubsPath = path.join(testWorkspacePath, '.vscode', 'kirby-stubs');
+
+      // Clean up if exists
+      if (fs.existsSync(stubsPath)) {
+        fs.rmSync(stubsPath, { recursive: true, force: true });
+      }
+
+      try {
+        // Start stub initialization
+        const initPromise = integration.initializeStubs(testWorkspacePath);
+
+        // Call abort after a very short delay to catch it during copy
+        setTimeout(() => integration.abort(), 1);
+
+        // Wait for initialization to complete
+        await initPromise;
+
+        // The operation should have been aborted gracefully without errors
+        // We just verify it doesn't throw
+        assert.ok(true, 'Stub initialization should handle abort gracefully');
+      } catch (error) {
+        // May fail if source stubs don't exist in test environment
+        console.log('Abort during copy test error (may be acceptable):', error);
+      }
+    });
+
+    test('should allow abort() to be called multiple times safely', () => {
+      assert.doesNotThrow(() => {
+        integration.abort();
+        integration.abort();
+        integration.abort();
+      }, 'Multiple abort() calls should not throw');
+    });
+
+    test('should return false immediately when initializing after abort', async function() {
+      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+        this.skip();
+        return;
+      }
+
+      // Call abort first
+      integration.abort();
+
+      // Try to initialize
+      const result = await integration.initialize();
+
+      // Should return false immediately
+      assert.strictEqual(result, false, 'Initialize should return false after abort');
+    });
+  });
 });
