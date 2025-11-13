@@ -234,6 +234,26 @@
           "default": 2000,
           "description": "Delay in milliseconds before auto-starting build watcher (allows project to load)"
         },
+        "kirby.enableBuildOutputParsing": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable build output parsing for watch mode detection and metrics"
+        },
+        "kirby.buildToolPatterns": {
+          "type": "object",
+          "default": {},
+          "description": "Custom build tool output patterns for detection (advanced users only)"
+        },
+        "kirby.monitorAllTerminals": {
+          "type": "boolean",
+          "default": false,
+          "description": "Monitor all VS Code terminals for build processes (not just extension-created ones)"
+        },
+        "kirby.showBuildMetrics": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show build duration and rebuild count in status bar tooltip"
+        },
         "kirby.syncBlockSnippets": {
           "type": "boolean",
           "default": true,
@@ -308,6 +328,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.1.0",
+    "node-pty": "^1.0.0"
   }
 }

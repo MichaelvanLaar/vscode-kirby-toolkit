@@ -6,6 +6,26 @@ All notable changes to the "Kirby CMS Developer Toolkit" extension will be docum
 
 ### Added
 
+- **Enhanced Build Integration**: Intelligent output parsing for build processes with real-time status updates
+  - Hybrid PTY + Terminal architecture for output capture while maintaining interactive terminal
+  - Build output parsing for common build tools: Webpack 4/5, Vite 2/3, Tailwind CSS, esbuild, Parcel
+  - Automatic watch mode detection with dedicated "👁️ Watching" status indicator
+  - Real-time rebuild detection and tracking in watch mode
+  - Build metrics in status bar tooltip:
+    - Last build duration (e.g., "234ms" or "2.3s")
+    - Rebuild count in watch mode
+    - Time since last rebuild
+    - Detected build tool name
+  - New build states: WatchModeActive and Rebuilding for better status tracking
+  - Graceful fallback to timeout-based detection when output parsing unavailable
+  - New configuration settings:
+    - `kirby.enableBuildOutputParsing` (default: true) - Enable intelligent output parsing
+    - `kirby.showBuildMetrics` (default: true) - Display build metrics in tooltip
+    - `kirby.buildToolPatterns` (default: {}) - Custom pattern overrides for advanced users
+  - Automatic build tool detection from terminal output
+  - Buffer management for efficient parsing (100KB limit)
+  - Cross-platform support with platform-specific fallbacks
+
 - **Kirby API IntelliSense**: Intelligent autocompletion and inline documentation for Kirby CMS API
   - Automatic detection and integration with Intelephense PHP language server
   - PHP stub files for core Kirby classes: Page, Site, File, User, Kirby/App, Field
