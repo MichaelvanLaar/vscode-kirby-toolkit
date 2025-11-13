@@ -376,6 +376,40 @@ function updateBuildStatusBar(state: BuildState) {
     return;
   }
 
+  const buildProcess = BuildProcess.getInstance();
+  const config = vscode.workspace.getConfiguration('kirby');
+  const showMetrics = config.get<boolean>('showBuildMetrics', true);
+  const metrics = buildProcess.getMetrics();
+
+  // Build tooltip with metrics
+  let tooltip = 'Kirby Build Status - Click to show terminal';
+  if (showMetrics && metrics) {
+    const tooltipParts: string[] = ['Kirby Build Status'];
+
+    if (metrics.lastBuildDuration !== undefined) {
+      const duration = formatDuration(metrics.lastBuildDuration);
+      tooltipParts.push(`Last build: ${duration}`);
+    }
+
+    if (buildProcess.isInWatchMode() && metrics.rebuildCount > 0) {
+      tooltipParts.push(`Rebuilds: ${metrics.rebuildCount}`);
+    }
+
+    if (metrics.lastRebuildTime) {
+      const elapsed = Date.now() - metrics.lastRebuildTime;
+      tooltipParts.push(`Last rebuild: ${formatTimeAgo(elapsed)}`);
+    }
+
+    const detectedTool = buildProcess.getDetectedTool();
+    if (detectedTool) {
+      tooltipParts.push(`Tool: ${detectedTool}`);
+    }
+
+    tooltip = tooltipParts.join('\n');
+  }
+
+  buildStatusBar.tooltip = tooltip;
+
   switch (state) {
     case BuildState.Idle:
       buildStatusBar.text = '⚫ No build';
@@ -395,11 +429,47 @@ function updateBuildStatusBar(state: BuildState) {
       buildStatusBar.show();
       break;
 
+    case BuildState.WatchModeActive:
+      buildStatusBar.text = '👁️ Watching';
+      buildStatusBar.backgroundColor = new vscode.ThemeColor('statusBarItem.prominentBackground');
+      buildStatusBar.show();
+      break;
+
+    case BuildState.Rebuilding:
+      buildStatusBar.text = '🔨 Rebuilding';
+      buildStatusBar.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
+      buildStatusBar.show();
+      break;
+
     case BuildState.Error:
       buildStatusBar.text = '❌ Build error';
       buildStatusBar.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
       buildStatusBar.show();
       break;
+  }
+}
+
+/**
+ * Formats duration in milliseconds to human-readable string
+ */
+function formatDuration(ms: number): string {
+  if (ms < 1000) {
+    return `${Math.round(ms)}ms`;
+  } else {
+    return `${(ms / 1000).toFixed(1)}s`;
+  }
+}
+
+/**
+ * Formats elapsed time to human-readable string
+ */
+function formatTimeAgo(ms: number): string {
+  const seconds = Math.floor(ms / 1000);
+  if (seconds < 60) {
+    return `${seconds}s ago`;
+  } else {
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes}m ago`;
   }
 }
 
