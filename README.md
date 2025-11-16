@@ -553,6 +553,108 @@ When the [Kirby Snippet Controller plugin](https://github.com/lukaskleinschmidt/
 - Automatic type-hint injection when creating new snippet controller files
 - Supports nested snippets (e.g., `partials/menu.controller.php`)
 
+### 12. Kirby Panel Integration
+
+Access the Kirby Panel directly within VS Code, eliminating context switching between your editor and browser during development.
+
+**Features:**
+- 🎛️ WebView-based Panel embedded in VS Code editor
+- 🌐 Alternative browser-based Panel access
+- 🔍 Automatic Panel URL detection (localhost probing)
+- ⚙️ Manual Panel URL configuration for remote/custom setups
+- 📊 Status bar indicator showing Panel server status
+- 🔄 Panel reload functionality
+- 🔐 Session persistence within VS Code session
+- ⚡ Quick access via status bar or command palette
+
+**Usage:**
+
+**Open Panel in WebView (Recommended):**
+1. Click the "🎛️ Kirby Panel" status bar item (bottom-right)
+2. Or use Command Palette: `Kirby: Open Panel in WebView`
+3. Panel opens in a new editor tab within VS Code
+
+**Open Panel in Browser:**
+- Command: `Kirby: Open Panel in Browser`
+- Opens Panel URL in your default web browser
+
+**Additional Commands:**
+- `Kirby: Reload Panel` - Refresh the Panel WebView content
+- `Kirby: Configure Panel URL` - Manually set Panel URL for custom configurations
+
+**Panel URL Detection:**
+
+The extension automatically detects your Panel URL using multiple strategies:
+
+1. **Configuration Setting** (highest priority):
+   - Set `kirby.panelUrl` in workspace settings
+   - Example: `"kirby.panelUrl": "http://localhost:8000/panel"`
+
+2. **Localhost Port Probing**:
+   - Automatically checks common ports: 8000, 3000, 8080, 8888
+   - Tests URL pattern: `http://localhost:{port}/panel`
+
+3. **package.json Script Parsing**:
+   - Extracts port from server commands
+   - Example: `"dev": "php -S localhost:8000"` → detects port 8000
+
+4. **Manual Entry Fallback**:
+   - Prompts you to enter URL if detection fails
+
+**Status Bar Indicator:**
+
+The status bar shows Panel server status:
+- **🎛️ Kirby Panel** - Server detected and reachable
+- **⚠️ Panel offline** - Server URL configured but not reachable
+- Tooltip shows the detected Panel URL
+
+**Server Setup Examples:**
+
+PHP Built-in Server:
+```bash
+php -S localhost:8000
+```
+
+Laravel Valet:
+```bash
+valet link
+# Panel URL: http://your-project.test/panel
+```
+
+Docker:
+```json
+{
+  "kirby.panelUrl": "http://localhost:3000/panel"
+}
+```
+
+**Troubleshooting:**
+
+**Panel won't load in WebView:**
+- Some servers may block iframe embedding via `X-Frame-Options` header
+- Solution: Use "Open Panel in Browser" command instead
+- Or configure your server to allow iframe embedding
+
+**Panel URL not detected:**
+- Start your development server first
+- Or manually configure: `Kirby: Configure Panel URL`
+- Check `kirby.panelAutoDetect` setting is enabled (default: true)
+
+**Authentication:**
+- Login via the Panel's standard login form within the WebView
+- Session persists during VS Code session
+- Re-authentication required after VS Code restart (sessions don't persist across restarts)
+
+**Configuration Options:**
+```json
+{
+  "kirby.enablePanelIntegration": true,      // Enable Panel integration (default: true)
+  "kirby.panelUrl": "",                       // Manual Panel URL (auto-detect if empty)
+  "kirby.panelAutoDetect": true,              // Auto-detect Panel URL (default: true)
+  "kirby.panelOpenInWebView": true            // Open in WebView by default (default: true)
+}
+```
+
 ## Requirements
 
 - **VS Code**: Version 1.60.0 or higher
@@ -603,6 +705,12 @@ This extension contributes the following settings:
 * `kirby.enableApiIntelliSense`: Enable/disable Kirby API IntelliSense via Intelephense (default: `true`)
 * `kirby.kirbyVersion`: Kirby CMS version for API stubs (default: `"4.0"`)
 * `kirby.customStubsPath`: Custom path to Kirby API stub files (default: `""`)
+
+### Panel Integration
+* `kirby.enablePanelIntegration`: Enable/disable Kirby Panel integration features (default: `true`)
+* `kirby.panelUrl`: Kirby Panel URL for manual configuration (leave empty for automatic detection, e.g., `"http://localhost:8000/panel"`)
+* `kirby.panelAutoDetect`: Automatically detect Panel URL by probing common localhost ports (default: `true`)
+* `kirby.panelOpenInWebView`: Open Panel in WebView by default; if false, always use external browser (default: `true`)
 
 ## Installation
 
