@@ -95,6 +95,22 @@
       {
         "command": "kirby.reinstallApiStubs",
         "title": "Kirby: Reinstall API Stubs"
+      },
+      {
+        "command": "kirby.openPanelWebView",
+        "title": "Kirby: Open Panel in WebView"
+      },
+      {
+        "command": "kirby.openPanelBrowser",
+        "title": "Kirby: Open Panel in Browser"
+      },
+      {
+        "command": "kirby.reloadPanel",
+        "title": "Kirby: Reload Panel"
+      },
+      {
+        "command": "kirby.configurePanelUrl",
+        "title": "Kirby: Configure Panel URL"
       }
     ],
     "menus": {
@@ -273,6 +289,26 @@
           "type": "string",
           "default": "",
           "description": "Custom path to Kirby API stub files (leave empty to use bundled stubs)"
+        },
+        "kirby.enablePanelIntegration": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Kirby Panel integration features (WebView and browser access)"
+        },
+        "kirby.panelUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Kirby Panel URL (leave empty for automatic detection, e.g., http://localhost:8000/panel)"
+        },
+        "kirby.panelAutoDetect": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically detect Panel URL by probing common localhost ports"
+        },
+        "kirby.panelOpenInWebView": {
+          "type": "boolean",
+          "default": true,
+          "description": "Open Panel in WebView by default (if false, always use external browser)"
         }
       }
     },

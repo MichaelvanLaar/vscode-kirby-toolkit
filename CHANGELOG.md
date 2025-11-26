@@ -6,6 +6,29 @@ All notable changes to the "Kirby CMS Developer Toolkit" extension will be docum
 
 ### Added
 
+- **Kirby Panel Integration**: Access the Kirby Panel directly within VS Code
+  - WebView-based Panel embedded in VS Code editor
+  - Alternative browser-based Panel access
+  - Automatic Panel URL detection via localhost probing
+  - Manual Panel URL configuration for remote/custom setups
+  - Status bar indicator showing Panel server status
+  - Panel reload functionality
+  - Session persistence within VS Code session
+  - Multiple detection strategies: configuration setting, port probing, package.json parsing, manual entry
+  - Commands:
+    - `Kirby: Open Panel in WebView` - Open Panel in embedded WebView
+    - `Kirby: Open Panel in Browser` - Open Panel in default browser
+    - `Kirby: Reload Panel` - Refresh Panel WebView content
+    - `Kirby: Configure Panel URL` - Manually set Panel URL
+  - Configuration settings:
+    - `kirby.enablePanelIntegration` (default: true) - Enable Panel integration features
+    - `kirby.panelUrl` (default: "") - Manual Panel URL configuration
+    - `kirby.panelAutoDetect` (default: true) - Auto-detect Panel URL
+    - `kirby.panelOpenInWebView` (default: true) - Open in WebView by default
+  - Comprehensive error handling with helpful troubleshooting messages
+  - Security: URL validation and XSS protection for iframe content
+  - Full test coverage for Panel detection and WebView lifecycle
+
 - **Kirby API IntelliSense**: Intelligent autocompletion and inline documentation for Kirby CMS API
   - Automatic detection and integration with Intelephense PHP language server
   - PHP stub files for core Kirby classes: Page, Site, File, User, Kirby/App, Field

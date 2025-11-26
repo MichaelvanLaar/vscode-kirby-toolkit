@@ -25,12 +25,18 @@ import {
   showBuildTerminal
 } from './commands/buildCommands';
 import { IntelephenseIntegration } from './integrations/intelephenseIntegration';
+import { openPanelInWebView, openPanelInBrowser, reloadPanel, configurePanelUrl, showPanelQuickPick } from './commands/openPanel';
+import { detectPanelUrlDetailed } from './utils/panelDetector';
+import { KirbyPanelWebView } from './panels/kirbyPanelWebView';
 
 // Global reference to sync watcher
 let syncWatcher: BlueprintTemplateSyncWatcher | undefined;
 
 // Global reference to build status bar
 let buildStatusBar: vscode.StatusBarItem | undefined;
+
+// Global reference to Panel status bar
+let panelStatusBar: vscode.StatusBarItem | undefined;
 
 // Global reference to Intelephense integration
 let intelephenseIntegration: IntelephenseIntegration | undefined;
@@ -91,6 +97,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register API IntelliSense
   registerApiIntelliSenseFeatures(context);
+
+  // Register Panel Integration
+  registerPanelIntegrationFeatures(context);
 
   console.log('Kirby CMS Developer Toolkit activated successfully!');
 }
@@ -485,6 +494,87 @@ function registerApiIntelliSenseFeatures(context: vscode.ExtensionContext) {
 }
 
 /**
+ * Register Panel integration features
+ */
+function registerPanelIntegrationFeatures(context: vscode.ExtensionContext) {
+  const config = vscode.workspace.getConfiguration('kirby');
+  const enabled = config.get<boolean>('enablePanelIntegration', true);
+
+  if (!enabled) {
+    return;
+  }
+
+  // Create status bar item
+  panelStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+  panelStatusBar.command = 'kirby.openPanelWebView';
+  panelStatusBar.text = '🎛️ Kirby Panel';
+  panelStatusBar.tooltip = 'Open Kirby Panel';
+  panelStatusBar.show();
+  context.subscriptions.push(panelStatusBar);
+
+  // Update status bar based on server status (async, non-blocking)
+  updatePanelStatusBar().catch(error => {
+    console.error('Failed to update Panel status bar:', error);
+  });
+
+  // Register Panel commands
+  context.subscriptions.push(
+    vscode.commands.registerCommand('kirby.openPanelWebView', () => openPanelInWebView(context.extensionUri)),
+    vscode.commands.registerCommand('kirby.openPanelBrowser', openPanelInBrowser),
+    vscode.commands.registerCommand('kirby.reloadPanel', reloadPanel),
+    vscode.commands.registerCommand('kirby.configurePanelUrl', configurePanelUrl),
+    vscode.commands.registerCommand('kirby.showPanelQuickPick', () => showPanelQuickPick(context.extensionUri))
+  );
+
+  // Listen for configuration changes
+  const configChangeListener = vscode.workspace.onDidChangeConfiguration((e) => {
+    if (e.affectsConfiguration('kirby.enablePanelIntegration')) {
+      const newEnabled = vscode.workspace.getConfiguration('kirby').get<boolean>('enablePanelIntegration', true);
+      if (newEnabled && panelStatusBar) {
+        panelStatusBar.show();
+      } else if (!newEnabled && panelStatusBar) {
+        panelStatusBar.hide();
+      }
+    }
+
+    if (e.affectsConfiguration('kirby.panelUrl') ||
+        e.affectsConfiguration('kirby.panelAutoDetect')) {
+      // Update status bar when Panel URL configuration changes
+      updatePanelStatusBar().catch(error => {
+        console.error('Failed to update Panel status bar:', error);
+      });
+    }
+  });
+
+  context.subscriptions.push(configChangeListener);
+}
+
+/**
+ * Updates the Panel status bar based on server status
+ */
+async function updatePanelStatusBar(): Promise<void> {
+  if (!panelStatusBar) {
+    return;
+  }
+
+  const result = await detectPanelUrlDetailed();
+
+  if (result.isReachable && result.url) {
+    panelStatusBar.text = '🎛️ Kirby Panel';
+    panelStatusBar.tooltip = `Open Kirby Panel (${result.url})`;
+    panelStatusBar.backgroundColor = undefined;
+  } else if (result.url && !result.isReachable) {
+    panelStatusBar.text = '⚠️ Panel offline';
+    panelStatusBar.tooltip = `Kirby Panel server is not reachable (${result.url})`;
+    panelStatusBar.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
+  } else {
+    panelStatusBar.text = '🎛️ Kirby Panel';
+    panelStatusBar.tooltip = 'Open Kirby Panel (server not detected)';
+    panelStatusBar.backgroundColor = undefined;
+  }
+}
+
+/**
  * Extension deactivation function
  */
 export function deactivate() {
@@ -498,11 +588,20 @@ export function deactivate() {
   const buildProcess = BuildProcess.getInstance();
   buildProcess.dispose();
 
-  // Clean up status bar
+  // Clean up build status bar
   if (buildStatusBar) {
     buildStatusBar.dispose();
     buildStatusBar = undefined;
   }
+
+  // Clean up Panel status bar
+  if (panelStatusBar) {
+    panelStatusBar.dispose();
+    panelStatusBar = undefined;
+  }
+
+  // Clean up Panel WebView
+  KirbyPanelWebView.dispose();
 
   // Clear any pending configuration change timers
   if (configChangeDebounceTimer) {
