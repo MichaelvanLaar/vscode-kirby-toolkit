@@ -487,22 +487,34 @@ Click the status bar to show the build terminal.
 }
 ```
 
-**Current Limitations:**
+**Enhanced Features:**
 
-Due to VS Code Terminal API constraints, the build integration has the following limitations:
+The build integration uses intelligent output parsing to provide real-time status updates:
 
-1. **Extension-Managed Builds Only**: The extension can only monitor build processes it starts through its own commands (`Kirby: Start Build Watcher`, etc.). Builds started via VS Code's npm scripts panel or external terminals are not detected.
+1. **Watch Mode Detection**: Automatically detects when build tools enter watch mode and updates the status bar to show "👁️ Watching". Subsequent rebuilds triggered by file changes are detected and tracked in real-time.
 
-2. **Watch Mode Rebuilds Not Detected**: When using watch mode (e.g., `npm run dev-server` with webpack watch), the status bar shows "Build ready" after the initial build completes (5-second timeout). Subsequent rebuilds triggered by file changes are not detected - the status bar remains in "ready" state.
+2. **Build Output Parsing**: Parses terminal output from common build tools (Webpack, Vite, Tailwind CSS, esbuild, Parcel) to detect:
+   - Build start events
+   - Build completion (success/error)
+   - Watch mode activation
+   - Build duration
 
-3. **Timeout-Based Status**: The "Build ready" state is determined by a 5-second timeout after starting the build terminal, not by parsing actual build output. The extension cannot read terminal output due to Terminal API limitations.
+3. **Build Metrics**: Status bar tooltip displays:
+   - Last build duration (e.g., "234ms" or "2.3s")
+   - Rebuild count in watch mode
+   - Time since last rebuild
+   - Detected build tool
 
-4. **No Build Output Parsing**: Build errors and warnings are only visible in the terminal itself. The extension cannot parse build tool output to detect specific errors or provide "jump to error" functionality.
+4. **Graceful Fallback**: If output parsing is unavailable or disabled, the extension falls back to timeout-based status detection (5 seconds) to ensure basic functionality.
 
-**Workarounds:**
-- Use the extension's `Kirby: Start Build Watcher` command instead of the npm scripts panel for status bar integration
-- Check the build terminal directly for detailed output and error messages
-- The terminal output includes clickable file paths for most build tools (Vite, Webpack, etc.)
+**Configuration Options:**
+```json
+{
+  "kirby.enableBuildOutputParsing": true,  // Enable intelligent output parsing
+  "kirby.showBuildMetrics": true,          // Show build metrics in tooltip
+  "kirby.buildToolPatterns": {}            // Custom pattern overrides (advanced)
+}
+```
 
 **Supported Build Tools:**
 - ✅ Vite
