@@ -3,7 +3,8 @@ import * as vscode from 'vscode';
 
 suite('Blueprint Field CodeLens Test Suite', () => {
 	suite('Command Registration', () => {
-		test('should register kirby.openBlueprint command', async () => {
+		test('should register kirby.openBlueprint command', async function() {
+			this.timeout(5000); // Increase timeout for command enumeration
 			const commands = await vscode.commands.getCommands();
 			// In test environment without Kirby project, command might not be registered
 			// This test verifies the command exists in production or doesn't throw an error

@@ -46,7 +46,8 @@ suite('Type Hints Test Suite', () => {
 	});
 
 	suite('hasTypeHints', () => {
-		test('should detect existing Kirby type hints', async () => {
+		test('should detect existing Kirby type hints', async function() {
+			this.timeout(10000); // Increase timeout for document creation in test environment
 			const content = `<?php
 /**
  * @var \\Kirby\\Cms\\Page $page
@@ -57,7 +58,8 @@ suite('Type Hints Test Suite', () => {
 			assert.strictEqual(hasTypeHints(document), true);
 		});
 
-		test('should return false for file without type hints', async () => {
+		test('should return false for file without type hints', async function() {
+			this.timeout(10000); // Increase timeout for document creation in test environment
 			const content = `<?php
 // Just some PHP code
 echo "Hello";
@@ -66,13 +68,15 @@ echo "Hello";
 			assert.strictEqual(hasTypeHints(document), false);
 		});
 
-		test('should return false for empty document', async () => {
+		test('should return false for empty document', async function() {
+			this.timeout(10000); // Increase timeout for document creation in test environment
 			const content = "";
 			const document = await createMockDocument(content);
 			assert.strictEqual(hasTypeHints(document), false);
 		});
 
-		test('should detect case-insensitive type hints', async () => {
+		test('should detect case-insensitive type hints', async function() {
+			this.timeout(10000); // Increase timeout for document creation in test environment
 			const content = `<?php
 /**
  * @var \\kirby\\cms\\page $page

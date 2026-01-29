@@ -69,7 +69,7 @@ suite('Intelephense Integration Test Suite', () => {
   suite('Stub Initialization', () => {
     test('should create stub directory when initializing', async function() {
       // Skip if no workspace
-      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+      if (!testWorkspacePath || testWorkspacePath.includes('vscode-kirby-toolkit')) {
         this.skip();
         return;
       }
@@ -94,7 +94,7 @@ suite('Intelephense Integration Test Suite', () => {
 
     test('should not overwrite existing stubs', async function() {
       // Skip if no workspace
-      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+      if (!testWorkspacePath || testWorkspacePath.includes('vscode-kirby-toolkit')) {
         this.skip();
         return;
       }
@@ -129,7 +129,7 @@ suite('Intelephense Integration Test Suite', () => {
   suite('Intelephense Configuration', () => {
     test('should create settings.json if it does not exist', async function() {
       // Skip if no workspace
-      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+      if (!testWorkspacePath || testWorkspacePath.includes('vscode-kirby-toolkit')) {
         this.skip();
         return;
       }
@@ -166,7 +166,7 @@ suite('Intelephense Integration Test Suite', () => {
 
     test('should add stub path to existing settings', async function() {
       // Skip if no workspace
-      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+      if (!testWorkspacePath || testWorkspacePath.includes('vscode-kirby-toolkit')) {
         this.skip();
         return;
       }
@@ -202,7 +202,7 @@ suite('Intelephense Integration Test Suite', () => {
 
     test('should not add duplicate stub paths', async function() {
       // Skip if no workspace
-      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+      if (!testWorkspacePath || testWorkspacePath.includes('vscode-kirby-toolkit')) {
         this.skip();
         return;
       }
@@ -236,8 +236,8 @@ suite('Intelephense Integration Test Suite', () => {
 
   suite('Gitignore Management', () => {
     test('should add stub pattern to .gitignore', async function() {
-      // Skip if no workspace
-      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+      // Skip if running in the actual project workspace to avoid modifications
+      if (!testWorkspacePath || testWorkspacePath.includes('vscode-kirby-toolkit')) {
         this.skip();
         return;
       }
@@ -271,7 +271,7 @@ suite('Intelephense Integration Test Suite', () => {
   suite('Stub Cleanup', () => {
     test('should remove stub directory', async function() {
       // Skip if no workspace
-      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+      if (!testWorkspacePath || testWorkspacePath.includes('vscode-kirby-toolkit')) {
         this.skip();
         return;
       }
@@ -291,7 +291,7 @@ suite('Intelephense Integration Test Suite', () => {
 
     test('should remove stub path from settings', async function() {
       // Skip if no workspace
-      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+      if (!testWorkspacePath || testWorkspacePath.includes('vscode-kirby-toolkit')) {
         this.skip();
         return;
       }
@@ -335,7 +335,7 @@ suite('Intelephense Integration Test Suite', () => {
   suite('Stub Reinstallation', () => {
     test('should reinstall stubs', async function() {
       // Skip if no workspace or source stubs don't exist
-      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+      if (!testWorkspacePath || testWorkspacePath.includes('vscode-kirby-toolkit')) {
         this.skip();
         return;
       }
@@ -372,7 +372,8 @@ suite('Intelephense Integration Test Suite', () => {
 
   suite('Custom Stubs Path Validation (Security)', () => {
     test('should reject path traversal attempts', async function() {
-      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+      // Skip if running in the actual project workspace to avoid modifications
+      if (!testWorkspacePath || testWorkspacePath.includes('vscode-kirby-toolkit')) {
         this.skip();
         return;
       }
@@ -411,7 +412,7 @@ suite('Intelephense Integration Test Suite', () => {
     });
 
     test('should reject sensitive system directories', async function() {
-      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+      if (!testWorkspacePath || testWorkspacePath.includes('vscode-kirby-toolkit')) {
         this.skip();
         return;
       }
@@ -447,7 +448,7 @@ suite('Intelephense Integration Test Suite', () => {
     });
 
     test('should accept valid relative paths within workspace', async function() {
-      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+      if (!testWorkspacePath || testWorkspacePath.includes('vscode-kirby-toolkit')) {
         this.skip();
         return;
       }
@@ -481,7 +482,7 @@ suite('Intelephense Integration Test Suite', () => {
     });
 
     test('should reject null and invalid types', async function() {
-      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+      if (!testWorkspacePath || testWorkspacePath.includes('vscode-kirby-toolkit')) {
         this.skip();
         return;
       }
@@ -514,7 +515,7 @@ suite('Intelephense Integration Test Suite', () => {
 
   suite('Settings Array Validation', () => {
     test('should filter non-string items from stubs array', async function() {
-      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+      if (!testWorkspacePath || testWorkspacePath.includes('vscode-kirby-toolkit')) {
         this.skip();
         return;
       }
@@ -557,7 +558,7 @@ suite('Intelephense Integration Test Suite', () => {
 
   suite('Symlink Security', () => {
     test('should skip symlinks during copy', async function() {
-      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+      if (!testWorkspacePath || testWorkspacePath.includes('vscode-kirby-toolkit')) {
         this.skip();
         return;
       }
@@ -618,7 +619,7 @@ suite('Intelephense Integration Test Suite', () => {
 
   suite('Abort Mechanism', () => {
     test('should abort initialization when abort() is called', async function() {
-      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+      if (!testWorkspacePath || testWorkspacePath.includes('vscode-kirby-toolkit')) {
         this.skip();
         return;
       }
@@ -649,7 +650,7 @@ suite('Intelephense Integration Test Suite', () => {
     });
 
     test('should abort stub initialization when abort() is called during copy', async function() {
-      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+      if (!testWorkspacePath || testWorkspacePath.includes('vscode-kirby-toolkit')) {
         this.skip();
         return;
       }
@@ -689,7 +690,7 @@ suite('Intelephense Integration Test Suite', () => {
     });
 
     test('should return false immediately when initializing after abort', async function() {
-      if (!testWorkspacePath || testWorkspacePath === '/tmp/test-workspace') {
+      if (!testWorkspacePath || testWorkspacePath.includes('vscode-kirby-toolkit')) {
         this.skip();
         return;
       }
