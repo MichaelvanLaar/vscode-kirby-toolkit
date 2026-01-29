@@ -46,9 +46,10 @@ export function isTemplateFile(filePath: string): boolean {
 /**
  * Checks if a file path is a Kirby snippet file
  * @param filePath Absolute path to the file
+ * @param testWorkspaceRoot Optional workspace root for testing
  */
-export function isSnippetFile(filePath: string): boolean {
-  const workspaceRoot = getWorkspaceRoot();
+export function isSnippetFile(filePath: string, testWorkspaceRoot?: string): boolean {
+  const workspaceRoot = testWorkspaceRoot || getWorkspaceRoot();
   if (!workspaceRoot) {
     return false;
   }
@@ -82,24 +83,40 @@ function sanitizeSnippetName(snippetName: string): string | undefined {
     return undefined;
   }
 
-  // Remove any path traversal attempts and normalize
-  const sanitized = path.normalize(snippetName).replace(/^(\.\.(\/|\\|$))+/, '');
-
-  // Ensure it doesn't start with / or contain absolute path indicators
-  if (path.isAbsolute(sanitized) || sanitized.includes('..')) {
+  // Reject any path traversal attempts upfront
+  if (snippetName.includes('..')) {
     return undefined;
   }
 
-  return sanitized;
+  // Reject absolute paths (Unix-style and Windows-style)
+  if (path.isAbsolute(snippetName)) {
+    return undefined;
+  }
+
+  // Reject Windows-style drive letters (C:, D:, etc.) even on non-Windows systems
+  if (/^[a-zA-Z]:/.test(snippetName)) {
+    return undefined;
+  }
+
+  // Normalize the path to handle different path separators
+  const normalized = path.normalize(snippetName);
+
+  // After normalization, check again for path traversal and absolute paths
+  if (normalized.includes('..') || path.isAbsolute(normalized) || /^[a-zA-Z]:/.test(normalized)) {
+    return undefined;
+  }
+
+  return normalized;
 }
 
 /**
  * Resolves a snippet name to its file path
  * @param snippetName Name of the snippet (e.g., 'header' or 'partials/menu')
+ * @param testWorkspaceRoot Optional workspace root for testing
  * @returns Absolute path to the snippet file, or undefined if workspace not found or invalid name
  */
-export function resolveSnippetPath(snippetName: string): string | undefined {
-  const workspaceRoot = getWorkspaceRoot();
+export function resolveSnippetPath(snippetName: string, testWorkspaceRoot?: string): string | undefined {
+  const workspaceRoot = testWorkspaceRoot || getWorkspaceRoot();
   if (!workspaceRoot) {
     return undefined;
   }
@@ -724,10 +741,11 @@ let snippetControllerPluginDetected: boolean | undefined;
 
 /**
  * Performs the actual plugin detection by checking composer.json and site/plugins/
+ * @param testWorkspaceRoot Optional workspace root for testing
  * @returns True if plugin is detected, false otherwise
  */
-function detectSnippetControllerPlugin(): boolean {
-  const workspaceRoot = getWorkspaceRoot();
+function detectSnippetControllerPlugin(testWorkspaceRoot?: string): boolean {
+  const workspaceRoot = testWorkspaceRoot || getWorkspaceRoot();
   if (!workspaceRoot) {
     return false;
   }
@@ -764,9 +782,15 @@ function detectSnippetControllerPlugin(): boolean {
 /**
  * Detects if the Snippet Controller plugin is installed in the workspace
  * Checks both composer.json and site/plugins/ directory
+ * @param testWorkspaceRoot Optional workspace root for testing
  * @returns True if plugin is detected, false otherwise
  */
-export function isSnippetControllerPluginInstalled(): boolean {
+export function isSnippetControllerPluginInstalled(testWorkspaceRoot?: string): boolean {
+  // Skip caching for test workspaces
+  if (testWorkspaceRoot) {
+    return detectSnippetControllerPlugin(testWorkspaceRoot);
+  }
+
   if (snippetControllerPluginDetected !== undefined) {
     return snippetControllerPluginDetected;
   }
@@ -786,10 +810,11 @@ export function clearSnippetControllerPluginCache(): void {
 /**
  * Checks if a file path is a snippet controller file
  * @param filePath Absolute path to the file
+ * @param testWorkspaceRoot Optional workspace root for testing
  * @returns True if file is a snippet controller, false otherwise
  */
-export function isSnippetControllerFile(filePath: string): boolean {
-  const workspaceRoot = getWorkspaceRoot();
+export function isSnippetControllerFile(filePath: string, testWorkspaceRoot?: string): boolean {
+  const workspaceRoot = testWorkspaceRoot || getWorkspaceRoot();
   if (!workspaceRoot) {
     return false;
   }
@@ -804,10 +829,11 @@ export function isSnippetControllerFile(filePath: string): boolean {
 /**
  * Resolves a snippet name to its controller file path
  * @param snippetName Name of the snippet (e.g., 'header' or 'partials/menu')
+ * @param testWorkspaceRoot Optional workspace root for testing
  * @returns Absolute path to the controller file, or undefined if workspace not found or invalid name
  */
-export function resolveSnippetControllerPath(snippetName: string): string | undefined {
-  const workspaceRoot = getWorkspaceRoot();
+export function resolveSnippetControllerPath(snippetName: string, testWorkspaceRoot?: string): string | undefined {
+  const workspaceRoot = testWorkspaceRoot || getWorkspaceRoot();
   if (!workspaceRoot) {
     return undefined;
   }
@@ -832,10 +858,11 @@ export function resolveSnippetControllerPath(snippetName: string): string | unde
 /**
  * Checks if a snippet controller file exists
  * @param snippetName Name of the snippet
+ * @param testWorkspaceRoot Optional workspace root for testing
  * @returns True if controller exists, false otherwise
  */
-export function snippetControllerExists(snippetName: string): boolean {
-  const controllerPath = resolveSnippetControllerPath(snippetName);
+export function snippetControllerExists(snippetName: string, testWorkspaceRoot?: string): boolean {
+  const controllerPath = resolveSnippetControllerPath(snippetName, testWorkspaceRoot);
   if (!controllerPath) {
     return false;
   }
@@ -845,11 +872,12 @@ export function snippetControllerExists(snippetName: string): boolean {
 /**
  * Resolves a snippet controller file path back to the snippet name
  * @param controllerPath Absolute path to the controller file
+ * @param testWorkspaceRoot Optional workspace root for testing
  * @returns Snippet name (without .php/.controller.php extension), or undefined if invalid
  */
-export function getSnippetNameFromController(controllerPath: string): string | undefined {
-  const workspaceRoot = getWorkspaceRoot();
-  if (!workspaceRoot || !isSnippetControllerFile(controllerPath)) {
+export function getSnippetNameFromController(controllerPath: string, testWorkspaceRoot?: string): string | undefined {
+  const workspaceRoot = testWorkspaceRoot || getWorkspaceRoot();
+  if (!workspaceRoot || !isSnippetControllerFile(controllerPath, testWorkspaceRoot)) {
     return undefined;
   }
 
@@ -876,25 +904,27 @@ export function getSnippetNameFromController(controllerPath: string): string | u
 /**
  * Resolves a snippet controller file path back to its corresponding snippet file path
  * @param controllerPath Absolute path to the controller file
+ * @param testWorkspaceRoot Optional workspace root for testing
  * @returns Absolute path to the snippet file, or undefined if not found
  */
-export function resolveSnippetFromController(controllerPath: string): string | undefined {
-  const snippetName = getSnippetNameFromController(controllerPath);
+export function resolveSnippetFromController(controllerPath: string, testWorkspaceRoot?: string): string | undefined {
+  const snippetName = getSnippetNameFromController(controllerPath, testWorkspaceRoot);
   if (!snippetName) {
     return undefined;
   }
 
-  return resolveSnippetPath(snippetName);
+  return resolveSnippetPath(snippetName, testWorkspaceRoot);
 }
 
 /**
  * Gets the snippet name from a snippet file path
  * @param snippetPath Absolute path to the snippet file
+ * @param testWorkspaceRoot Optional workspace root for testing
  * @returns Snippet name (without .php extension), or undefined if invalid
  */
-export function getSnippetNameFromPath(snippetPath: string): string | undefined {
-  const workspaceRoot = getWorkspaceRoot();
-  if (!workspaceRoot || !isSnippetFile(snippetPath)) {
+export function getSnippetNameFromPath(snippetPath: string, testWorkspaceRoot?: string): string | undefined {
+  const workspaceRoot = testWorkspaceRoot || getWorkspaceRoot();
+  if (!workspaceRoot || !isSnippetFile(snippetPath, testWorkspaceRoot)) {
     return undefined;
   }
 

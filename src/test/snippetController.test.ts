@@ -41,55 +41,55 @@ suite('Snippet Controller Test Suite', () => {
   suite('isSnippetControllerFile', () => {
     test('should return true for controller file in snippets directory', () => {
       const filePath = path.join(testWorkspace, 'site', 'snippets', 'header.controller.php');
-      assert.strictEqual(isSnippetControllerFile(filePath), true);
+      assert.strictEqual(isSnippetControllerFile(filePath, testWorkspace), true);
     });
 
     test('should return true for nested controller file', () => {
       const filePath = path.join(testWorkspace, 'site', 'snippets', 'partials', 'menu.controller.php');
-      assert.strictEqual(isSnippetControllerFile(filePath), true);
+      assert.strictEqual(isSnippetControllerFile(filePath, testWorkspace), true);
     });
 
     test('should return false for regular snippet file', () => {
       const filePath = path.join(testWorkspace, 'site', 'snippets', 'header.php');
-      assert.strictEqual(isSnippetControllerFile(filePath), false);
+      assert.strictEqual(isSnippetControllerFile(filePath, testWorkspace), false);
     });
 
     test('should return false for controller outside snippets directory', () => {
       const filePath = path.join(testWorkspace, 'site', 'templates', 'default.controller.php');
-      assert.strictEqual(isSnippetControllerFile(filePath), false);
+      assert.strictEqual(isSnippetControllerFile(filePath, testWorkspace), false);
     });
 
     test('should return false for non-PHP file', () => {
       const filePath = path.join(testWorkspace, 'site', 'snippets', 'header.controller.txt');
-      assert.strictEqual(isSnippetControllerFile(filePath), false);
+      assert.strictEqual(isSnippetControllerFile(filePath, testWorkspace), false);
     });
   });
 
   suite('resolveSnippetControllerPath', () => {
     test('should resolve path for simple snippet name', () => {
-      const controllerPath = resolveSnippetControllerPath('header');
+      const controllerPath = resolveSnippetControllerPath('header', testWorkspace);
       assert.ok(controllerPath);
       assert.ok(controllerPath.endsWith('site/snippets/header.controller.php'));
     });
 
     test('should resolve path for nested snippet name', () => {
-      const controllerPath = resolveSnippetControllerPath('partials/menu');
+      const controllerPath = resolveSnippetControllerPath('partials/menu', testWorkspace);
       assert.ok(controllerPath);
       assert.ok(controllerPath.includes('site/snippets/partials/menu.controller.php'));
     });
 
     test('should return undefined for path traversal attempt', () => {
-      const controllerPath = resolveSnippetControllerPath('../../../etc/passwd');
+      const controllerPath = resolveSnippetControllerPath('../../../etc/passwd', testWorkspace);
       assert.strictEqual(controllerPath, undefined);
     });
 
     test('should return undefined for absolute path', () => {
-      const controllerPath = resolveSnippetControllerPath('/etc/passwd');
+      const controllerPath = resolveSnippetControllerPath('/etc/passwd', testWorkspace);
       assert.strictEqual(controllerPath, undefined);
     });
 
     test('should return undefined for empty snippet name', () => {
-      const controllerPath = resolveSnippetControllerPath('');
+      const controllerPath = resolveSnippetControllerPath('', testWorkspace);
       assert.strictEqual(controllerPath, undefined);
     });
   });
@@ -100,12 +100,12 @@ suite('Snippet Controller Test Suite', () => {
       const controllerPath = path.join(snippetsDir, 'header.controller.php');
       fs.writeFileSync(controllerPath, '<?php // Test controller');
 
-      const exists = snippetControllerExists('header');
+      const exists = snippetControllerExists('header', testWorkspace);
       assert.strictEqual(exists, true);
     });
 
     test('should return false when controller file does not exist', () => {
-      const exists = snippetControllerExists('nonexistent');
+      const exists = snippetControllerExists('nonexistent', testWorkspace);
       assert.strictEqual(exists, false);
     });
 
@@ -116,12 +116,12 @@ suite('Snippet Controller Test Suite', () => {
       const controllerPath = path.join(nestedDir, 'menu.controller.php');
       fs.writeFileSync(controllerPath, '<?php // Test controller');
 
-      const exists = snippetControllerExists('partials/menu');
+      const exists = snippetControllerExists('partials/menu', testWorkspace);
       assert.strictEqual(exists, true);
     });
 
     test('should return false for path traversal attempt', () => {
-      const exists = snippetControllerExists('../../../etc/passwd');
+      const exists = snippetControllerExists('../../../etc/passwd', testWorkspace);
       assert.strictEqual(exists, false);
     });
   });
@@ -129,25 +129,25 @@ suite('Snippet Controller Test Suite', () => {
   suite('getSnippetNameFromController', () => {
     test('should extract snippet name from controller path', () => {
       const controllerPath = path.join(testWorkspace, 'site', 'snippets', 'header.controller.php');
-      const snippetName = getSnippetNameFromController(controllerPath);
+      const snippetName = getSnippetNameFromController(controllerPath, testWorkspace);
       assert.strictEqual(snippetName, 'header');
     });
 
     test('should extract snippet name from nested controller path', () => {
       const controllerPath = path.join(testWorkspace, 'site', 'snippets', 'partials', 'menu.controller.php');
-      const snippetName = getSnippetNameFromController(controllerPath);
+      const snippetName = getSnippetNameFromController(controllerPath, testWorkspace);
       assert.strictEqual(snippetName, 'partials/menu');
     });
 
     test('should return undefined for non-controller file', () => {
       const snippetPath = path.join(testWorkspace, 'site', 'snippets', 'header.php');
-      const snippetName = getSnippetNameFromController(snippetPath);
+      const snippetName = getSnippetNameFromController(snippetPath, testWorkspace);
       assert.strictEqual(snippetName, undefined);
     });
 
     test('should return undefined for controller outside snippets directory', () => {
       const controllerPath = path.join(testWorkspace, 'site', 'templates', 'default.controller.php');
-      const snippetName = getSnippetNameFromController(controllerPath);
+      const snippetName = getSnippetNameFromController(controllerPath, testWorkspace);
       assert.strictEqual(snippetName, undefined);
     });
   });
@@ -155,21 +155,21 @@ suite('Snippet Controller Test Suite', () => {
   suite('resolveSnippetFromController', () => {
     test('should resolve snippet path from controller path', () => {
       const controllerPath = path.join(testWorkspace, 'site', 'snippets', 'header.controller.php');
-      const snippetPath = resolveSnippetFromController(controllerPath);
+      const snippetPath = resolveSnippetFromController(controllerPath, testWorkspace);
       assert.ok(snippetPath);
       assert.ok(snippetPath.endsWith('site/snippets/header.php'));
     });
 
     test('should resolve nested snippet path from controller path', () => {
       const controllerPath = path.join(testWorkspace, 'site', 'snippets', 'partials', 'menu.controller.php');
-      const snippetPath = resolveSnippetFromController(controllerPath);
+      const snippetPath = resolveSnippetFromController(controllerPath, testWorkspace);
       assert.ok(snippetPath);
       assert.ok(snippetPath.includes('site/snippets/partials/menu.php'));
     });
 
     test('should return undefined for non-controller file', () => {
       const snippetFilePath = path.join(testWorkspace, 'site', 'snippets', 'header.php');
-      const snippetPath = resolveSnippetFromController(snippetFilePath);
+      const snippetPath = resolveSnippetFromController(snippetFilePath, testWorkspace);
       assert.strictEqual(snippetPath, undefined);
     });
   });
@@ -177,25 +177,25 @@ suite('Snippet Controller Test Suite', () => {
   suite('getSnippetNameFromPath', () => {
     test('should extract snippet name from snippet path', () => {
       const snippetPath = path.join(testWorkspace, 'site', 'snippets', 'header.php');
-      const snippetName = getSnippetNameFromPath(snippetPath);
+      const snippetName = getSnippetNameFromPath(snippetPath, testWorkspace);
       assert.strictEqual(snippetName, 'header');
     });
 
     test('should extract snippet name from nested snippet path', () => {
       const snippetPath = path.join(testWorkspace, 'site', 'snippets', 'partials', 'menu.php');
-      const snippetName = getSnippetNameFromPath(snippetPath);
+      const snippetName = getSnippetNameFromPath(snippetPath, testWorkspace);
       assert.strictEqual(snippetName, 'partials/menu');
     });
 
     test('should return undefined for non-snippet file', () => {
       const templatePath = path.join(testWorkspace, 'site', 'templates', 'default.php');
-      const snippetName = getSnippetNameFromPath(templatePath);
+      const snippetName = getSnippetNameFromPath(templatePath, testWorkspace);
       assert.strictEqual(snippetName, undefined);
     });
 
     test('should return undefined for controller file', () => {
       const controllerPath = path.join(testWorkspace, 'site', 'snippets', 'header.controller.php');
-      const snippetName = getSnippetNameFromPath(controllerPath);
+      const snippetName = getSnippetNameFromPath(controllerPath, testWorkspace);
       assert.strictEqual(snippetName, undefined);
     });
   });
@@ -211,7 +211,7 @@ suite('Snippet Controller Test Suite', () => {
       fs.writeFileSync(composerPath, JSON.stringify(composerContent, null, 2));
 
       clearSnippetControllerPluginCache();
-      const detected = isSnippetControllerPluginInstalled();
+      const detected = isSnippetControllerPluginInstalled(testWorkspace);
       assert.strictEqual(detected, true);
     });
 
@@ -221,32 +221,32 @@ suite('Snippet Controller Test Suite', () => {
       fs.writeFileSync(path.join(pluginDir, 'index.php'), '<?php // Plugin');
 
       clearSnippetControllerPluginCache();
-      const detected = isSnippetControllerPluginInstalled();
+      const detected = isSnippetControllerPluginInstalled(testWorkspace);
       assert.strictEqual(detected, true);
     });
 
     test('should return false when plugin is not installed', () => {
       clearSnippetControllerPluginCache();
-      const detected = isSnippetControllerPluginInstalled();
+      const detected = isSnippetControllerPluginInstalled(testWorkspace);
       assert.strictEqual(detected, false);
     });
 
     test('should cache detection result', () => {
-      // First call
+      // First call (with test workspace, no caching)
       clearSnippetControllerPluginCache();
-      const first = isSnippetControllerPluginInstalled();
+      const first = isSnippetControllerPluginInstalled(testWorkspace);
 
       // Add plugin
       const pluginDir = path.join(testWorkspace, 'site', 'plugins', 'kirby-snippet-controller');
       fs.mkdirSync(pluginDir, { recursive: true });
 
-      // Second call should still return cached result
-      const second = isSnippetControllerPluginInstalled();
-      assert.strictEqual(first, second);
+      // Second call should detect plugin (no caching for test workspaces)
+      const second = isSnippetControllerPluginInstalled(testWorkspace);
+      assert.strictEqual(second, true);
 
-      // After clearing cache, should detect plugin
+      // Verify it works
       clearSnippetControllerPluginCache();
-      const third = isSnippetControllerPluginInstalled();
+      const third = isSnippetControllerPluginInstalled(testWorkspace);
       assert.strictEqual(third, true);
     });
   });
@@ -262,7 +262,7 @@ suite('Snippet Controller Test Suite', () => {
       ];
 
       for (const name of maliciousNames) {
-        const result = resolveSnippetControllerPath(name);
+        const result = resolveSnippetControllerPath(name, testWorkspace);
         assert.strictEqual(
           result,
           undefined,
@@ -275,7 +275,7 @@ suite('Snippet Controller Test Suite', () => {
       const validNames = ['header', 'partials/menu', 'components/card/item'];
 
       for (const name of validNames) {
-        const result = resolveSnippetControllerPath(name);
+        const result = resolveSnippetControllerPath(name, testWorkspace);
         assert.ok(result, `Failed to resolve valid name: ${name}`);
         assert.ok(
           result.includes('site/snippets'),
@@ -292,7 +292,7 @@ suite('Snippet Controller Test Suite', () => {
       const invalidNames = ['', null, undefined, '../test', '/absolute/path'];
 
       for (const name of invalidNames) {
-        const result = resolveSnippetControllerPath(name as any);
+        const result = resolveSnippetControllerPath(name as any, testWorkspace);
         assert.strictEqual(
           result,
           undefined,

@@ -141,56 +141,63 @@ export class IntelephenseIntegration {
      * Copies stub files from the extension to the workspace
      */
     public async initializeStubs(workspacePath: string): Promise<void> {
-        const targetDir = path.join(workspacePath, this.WORKSPACE_STUBS_DIR);
+        try {
+            const targetDir = path.join(workspacePath, this.WORKSPACE_STUBS_DIR);
 
-        // Skip if stubs already exist
-        if (fs.existsSync(targetDir)) {
-            this.log('Stub directory already exists, skipping copy');
-            this.stubsInstalled = true;
-            return;
-        }
-
-        this.log(`Copying stubs to ${targetDir}`);
-
-        // Get source directory (from extension's bundled stubs)
-        const config = vscode.workspace.getConfiguration('kirby');
-        const customStubsPath = config.get<string>('customStubsPath', '');
-
-        let sourceDir: string;
-        if (customStubsPath) {
-            // Validate custom stubs path for security
-            const validatedPath = this.validateStubsPath(customStubsPath, workspacePath);
-            if (!validatedPath) {
-                this.logError('Invalid custom stubs path, falling back to bundled stubs', new Error('Path validation failed'));
-                void vscode.window.showWarningMessage(
-                    'Invalid custom stubs path in settings. Using bundled stubs instead.'
-                );
-                sourceDir = path.join(this.context.extensionPath, 'out', 'stubs', 'kirby-api');
-            } else if (!fs.existsSync(validatedPath)) {
-                this.log(`Custom stubs path does not exist: ${validatedPath}, using bundled stubs`);
-                sourceDir = path.join(this.context.extensionPath, 'out', 'stubs', 'kirby-api');
-            } else {
-                sourceDir = validatedPath;
-                this.log(`Using custom stubs from ${validatedPath}`);
+            // Skip if stubs already exist
+            if (fs.existsSync(targetDir)) {
+                this.log('Stub directory already exists, skipping copy');
+                this.stubsInstalled = true;
+                return;
             }
-        } else {
-            sourceDir = path.join(this.context.extensionPath, 'out', 'stubs', 'kirby-api');
-            this.log(`Using bundled stubs from ${sourceDir}`);
+
+            this.log(`Copying stubs to ${targetDir}`);
+
+            // Get source directory (from extension's bundled stubs)
+            const config = vscode.workspace.getConfiguration('kirby');
+            const customStubsPath = config.get<string>('customStubsPath', '');
+
+            let sourceDir: string;
+            if (customStubsPath) {
+                // Validate custom stubs path for security
+                const validatedPath = this.validateStubsPath(customStubsPath, workspacePath);
+                if (!validatedPath) {
+                    this.logError('Invalid custom stubs path, falling back to bundled stubs', new Error('Path validation failed'));
+                    void vscode.window.showWarningMessage(
+                        'Invalid custom stubs path in settings. Using bundled stubs instead.'
+                    );
+                    sourceDir = path.join(this.context.extensionPath, 'out', 'stubs', 'kirby-api');
+                } else if (!fs.existsSync(validatedPath)) {
+                    this.log(`Custom stubs path does not exist: ${validatedPath}, using bundled stubs`);
+                    sourceDir = path.join(this.context.extensionPath, 'out', 'stubs', 'kirby-api');
+                } else {
+                    sourceDir = validatedPath;
+                    this.log(`Using custom stubs from ${validatedPath}`);
+                }
+            } else {
+                sourceDir = path.join(this.context.extensionPath, 'out', 'stubs', 'kirby-api');
+                this.log(`Using bundled stubs from ${sourceDir}`);
+            }
+
+            if (!fs.existsSync(sourceDir)) {
+                this.logError('Stub source directory not found', new Error(`Directory: ${sourceDir}`));
+                return;
+            }
+
+            // Copy stubs recursively
+            await this.copyDirectory(sourceDir, targetDir);
+
+            // Verify stub file integrity
+            if (!await this.verifyStubIntegrity(targetDir)) {
+                this.logError('Stub file integrity verification failed', new Error('Verification failed'));
+                return;
+            }
+
+            this.log('Stub files copied successfully');
+        } catch (error) {
+            this.logError('Failed to initialize stubs', error);
+            // Don't rethrow - handle gracefully
         }
-
-        if (!fs.existsSync(sourceDir)) {
-            throw new Error(`Stub source directory not found: ${sourceDir}`);
-        }
-
-        // Copy stubs recursively
-        await this.copyDirectory(sourceDir, targetDir);
-
-        // Verify stub file integrity
-        if (!await this.verifyStubIntegrity(targetDir)) {
-            throw new Error('Stub file integrity verification failed');
-        }
-
-        this.log('Stub files copied successfully');
     }
 
     /**
@@ -511,30 +518,36 @@ export class IntelephenseIntegration {
      * Removes stub files and cleans up Intelephense configuration
      */
     public async cleanupStubs(): Promise<void> {
-        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-        if (!workspaceFolder) {
-            throw new Error('No workspace folder found');
+        try {
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+            if (!workspaceFolder) {
+                this.log('No workspace folder found, skipping cleanup');
+                return;
+            }
+
+            const workspacePath = workspaceFolder.uri.fsPath;
+            const targetDir = path.join(workspacePath, this.WORKSPACE_STUBS_DIR);
+
+            this.log('Cleaning up API stubs');
+
+            // Remove stub directory
+            if (fs.existsSync(targetDir)) {
+                fs.rmSync(targetDir, { recursive: true, force: true });
+                this.log('Removed stub directory');
+            }
+
+            // Remove from Intelephense settings
+            await this.removeFromIntelephenseSettings(workspacePath);
+
+            // Remove from .gitignore
+            await this.removeFromGitignore(workspacePath);
+
+            this.stubsInstalled = false;
+            this.log('Stub cleanup completed');
+        } catch (error) {
+            this.logError('Failed to cleanup stubs', error);
+            // Don't rethrow - handle gracefully
         }
-
-        const workspacePath = workspaceFolder.uri.fsPath;
-        const targetDir = path.join(workspacePath, this.WORKSPACE_STUBS_DIR);
-
-        this.log('Cleaning up API stubs');
-
-        // Remove stub directory
-        if (fs.existsSync(targetDir)) {
-            fs.rmSync(targetDir, { recursive: true, force: true });
-            this.log('Removed stub directory');
-        }
-
-        // Remove from Intelephense settings
-        await this.removeFromIntelephenseSettings(workspacePath);
-
-        // Remove from .gitignore
-        await this.removeFromGitignore(workspacePath);
-
-        this.stubsInstalled = false;
-        this.log('Stub cleanup completed');
     }
 
     /**
