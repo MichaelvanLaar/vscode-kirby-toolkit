@@ -1,102 +1,46 @@
+# Project: Kirby CMS Developer Toolkit
 
-## Kirby CMS Developer Toolkit - Project Context
+VS Code extension for Kirby CMS development — type-hints, Blueprint validation, scaffolding, snippet navigation, build integration, and more (11 features, 284 tests).
 
-## What This Project Is
+## Stack
 
-This is a **Visual Studio Code extension** that enhances productivity for developers working with **Kirby CMS** (a file-based PHP content management system). The extension provides:
+TypeScript 5.9, VS Code Extension API ^1.60.0, js-yaml, JSON Schema, Mocha, ESLint, Husky.
 
-1. **Automatic Type-Hint Injection**: Adds PHPDoc type hints for Kirby's global variables (`$page`, `$site`, `$kirby`) in templates and snippets
-2. **Blueprint Schema Validation**: Real-time YAML validation and auto-completion for Kirby Blueprint files using JSON Schema
-3. **Snippet Navigation**: CodeLens links and Go-to-Definition support for navigating from `snippet()` calls to snippet files
+## Setup
 
-## Quick Reference
+- Install: `npm install`
+- Build: `npm run compile` (TypeScript + schema/stub copying)
+- Test: `npm test` (compile + lint + 284 tests)
+- Lint: `npm run lint`
+- Watch: `npm run watch`
 
-- **Tech Stack**: TypeScript 5.9.3 + VS Code Extension API ^1.60.0
-- **Target Platform**: Kirby CMS (PHP file-based CMS)
-- **Testing**: 36 comprehensive tests (Mocha + VS Code Extension Test Runner)
-- **Security**: Path traversal protection, input validation, 0 vulnerabilities
-- **Repository**: <https://github.com/MichaelvanLaar/vscode-kirby-toolkit>
+## Architecture
 
-## Key Project Files
+Entry point: `src/extension.ts`. Providers in `src/providers/`, commands in `src/commands/`, integrations in `src/integrations/`, utilities in `src/utils/`, schemas in `src/schemas/`, stubs in `src/stubs/`.
+Full documentation: `openspec/project.md`.
 
-- `src/extension.ts` - Main entry point with activate()/deactivate()
-- `src/providers/` - CodeLens and Definition providers for language features
-- `src/utils/kirbyProject.ts` - Kirby project detection and snippet path resolution
-- `src/utils/phpParser.ts` - Regex-based PHP parsing for snippet() calls
-- `src/config/settings.ts` - Centralized VS Code settings access
-- `src/schemas/blueprint.schema.json` - Bundled Kirby Blueprint JSON Schema (from bnomei/kirby-schema, MIT)
-- `openspec/project.md` - **COMPREHENSIVE project documentation** (read this for full context)
+## Conventions
 
-## Development Workflow
+- Conventional Commits with gitmoji.
+- Strict TypeScript — no `any` types.
+- All public APIs documented with JSDoc.
+- camelCase for files/functions, PascalCase for classes.
+- Security: always validate file paths via `resolveSnippetPath()` and `validateFileName()`.
+- Tests required for all new features; security-critical paths need >90% coverage.
 
-### Before Starting Any Task
+## Constraints
 
-1. **Read** [openspec/project.md](openspec/project.md) for comprehensive context including:
-   - Architecture patterns and conventions
-   - Security considerations and testing strategy
-   - Kirby CMS domain knowledge
-   - Build process and dependencies
+- No Kirby runtime — extension cannot execute PHP or call Kirby APIs.
+- Standard `site/` directory structure only.
+- Offline — schema and stubs bundled locally.
+- Pre-commit hook enforces full test suite.
 
-2. **For OpenSpec-managed changes** (new features, breaking changes, architecture shifts):
-   - Follow the workflow in [openspec/AGENTS.md](openspec/AGENTS.md)
-   - Create proposal → validate → implement → archive
+## Safety
 
-3. **For bug fixes and simple changes**:
-   - Write tests first (or verify existing tests cover the fix)
-   - Ensure all 36 tests pass before committing
-   - Security-related changes MUST have test coverage
+- Never read or write `.env`, `.env.*`, or `secrets/` files.
+- Validate all user inputs before file system operations.
+- Path traversal protection required for all file path handling.
 
-### Testing Requirements
+## OpenSpec
 
-- **Pre-commit Hook**: Husky runs `npm test` before every commit (compile + lint + test suite)
-- **Test Files**: `src/test/*.test.ts` (security, unit, feature, integration tests)
-- **Run Tests**: `npm test` (must pass 36/36 tests)
-- **Test Coverage**: Focus on security-critical paths (path handling, input validation)
-
-### Code Style
-
-- **TypeScript**: Strict mode enabled, ES2022 target
-- **ESLint**: 2-space indentation, semicolons required, strict equality
-- **Naming**: camelCase for functions/files, PascalCase for classes
-- **Documentation**: JSDoc for public APIs
-
-## Important Constraints
-
-- **No Kirby Runtime**: Cannot execute Kirby PHP code or call Kirby APIs (extension runs in VS Code, not PHP)
-- **Regex-based Parsing**: Uses simple regex for PHP parsing (not full AST parser)
-- **Standard Structure Only**: Assumes default `site/` directory structure
-- **Offline Functionality**: Must work without internet (schema bundled locally)
-- **Performance**: Fast activation (<500ms), limited file scanning to <500KB files
-
-## Security Principles
-
-- **Always validate and sanitize** user inputs before file system operations
-- **Path traversal protection**: Use `resolveSnippetPath()` from `src/utils/kirbyProject.ts`
-- **Write security tests** for any new file path handling or user input processing
-- **Check dependency security**: Run `npm audit` regularly (currently: 0 vulnerabilities)
-
-## Domain Knowledge
-
-### Kirby CMS Structure
-
-```text
-site/
-├── templates/      # PHP template files (use $page, $site, $kirby)
-├── snippets/       # Reusable PHP code blocks (loaded via snippet())
-├── blueprints/     # YAML files defining content structure
-├── config/         # PHP configuration
-└── controllers/    # PHP controller files
-```
-
-### Key Kirby Concepts
-
-- **Global Variables**: `$page` (current page), `$site` (site object), `$kirby` (Kirby instance)
-- **Snippet Function**: `snippet('name')` loads `site/snippets/name.php`
-- **Blueprints**: YAML files with JSON Schema validation (fields, sections, validation rules)
-
-## Getting Help
-
-- **Full Documentation**: [openspec/project.md](openspec/project.md)
-- **OpenSpec Workflow**: [openspec/AGENTS.md](openspec/AGENTS.md)
-- **User Documentation**: [README.md](README.md)
-- **Security Info**: [SECURITY.md](SECURITY.md)
+This project uses OpenSpec for structured change management. See `openspec/config.yaml`.

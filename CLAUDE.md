@@ -1,42 +1,38 @@
+# Kirby CMS Developer Toolkit
 
-## Kirby CMS Developer Toolkit - Project Context
+VS Code extension for Kirby CMS development — type-hints, Blueprint validation, scaffolding, snippet navigation, build integration, and more (11 features, 284 tests).
 
-This is a **Visual Studio Code extension** for **Kirby CMS** development with 8 comprehensive features:
+## Stack
 
-**Core Features (MVP - v0.1.0):**
+TypeScript 5.9, VS Code Extension API ^1.60.0, js-yaml, JSON Schema, Mocha, ESLint, Husky.
 
-1. **Type-Hint Injection**: Automatic PHPDoc type hints for `$page`, `$site`, `$kirby`
-2. **Blueprint Validation**: JSON Schema validation for Kirby Blueprint YAML files
-3. **Snippet Navigation**: CodeLens and Go-to-Definition for `snippet()` calls
+## Architecture
 
-**Toolkit Features (v0.3.0):** 4. **Page Type Scaffolding**: Interactive wizard to generate Blueprint, Template, Controller, Model 5. **Snippet Extraction**: Refactor selected code into reusable snippets 6. **Tailwind CSS Integration**: Auto-detect and configure Tailwind IntelliSense for PHP 7. **Blueprint Field Display**: CodeLens showing Blueprint fields in templates 8. **Extended File Navigation**: Navigate between Templates, Controllers, and Models
+Providers (`src/providers/`) for language features, commands (`src/commands/`) for user actions, integrations (`src/integrations/`) for third-party tools, utilities (`src/utils/`) for shared logic.
 
-### Quick Start
+@openspec/project.md for full architecture, conventions, domain context, and security details.
 
-- **Read First**: [openspec/project.md](openspec/project.md) - Comprehensive project documentation
-- **Tech Stack**: TypeScript 5.9.3 + VS Code Extension API + js-yaml
-- **Testing**: 284 tests across 12 test suites (run `npm test` before commits)
-- **Build**: `npm run compile` (TypeScript + schema copying)
+## Key Conventions
 
-### Key Files
+- Conventional Commits with gitmoji.
+- Strict TypeScript — no `any` types.
+- All public APIs documented with JSDoc.
+- Security first: always use `resolveSnippetPath()` and `validateFileName()` for file paths.
+- Tests: 284 tests across 12 suites; run `npm test` before commits (enforced by Husky).
 
-- [src/extension.ts](src/extension.ts) - Extension entry point
-- [src/commands/](src/commands/) - User-facing commands (scaffolding, extraction)
-- [src/providers/](src/providers/) - CodeLens and Definition providers
-- [src/integrations/](src/integrations/) - Third-party integrations (Tailwind)
-- [src/utils/kirbyProject.ts](src/utils/kirbyProject.ts) - Project detection & path resolution
-- [openspec/project.md](openspec/project.md) - Full project documentation
+## Important Constraints
 
-### Important Rules
+- No Kirby runtime — extension runs in VS Code, cannot execute PHP.
+- Standard `site/` directory structure only.
+- Offline functionality — schema bundled locally.
+- Files >500KB are skipped for parsing.
 
-- **Security First**: Always validate user inputs, use `resolveSnippetPath()` and `validateFileName()` for file paths
-- **Test Coverage**: All changes must pass 284 tests (enforced by Husky pre-commit hook)
-- **No Kirby Runtime**: Extension runs in VS Code, cannot execute PHP or call Kirby APIs
-- **OpenSpec for Features**: Use OpenSpec workflow for new features/breaking changes
-- **Release Process**: Follow [.claude/release-checklist.md](.claude/release-checklist.md) for publishing new versions
+## Publishing
 
-For complete context including architecture, conventions, testing strategy, and domain knowledge, see [openspec/project.md](openspec/project.md).
+@.claude/release-checklist.md
 
-## Notes
+## OpenSpec
 
-- Always use Conventional Commits and gitmoji when creating git commit messages.
+This project uses OpenSpec for structured change management.
+Use OpenSpec workflow for new features and breaking changes.
+See `openspec/config.yaml` for workflow configuration.
