@@ -53,6 +53,11 @@ This project uses OpenSpec for structured change management.
 Use OpenSpec workflow for new features and breaking changes.
 See `openspec/config.yaml` for workflow configuration.
 
+## Learnings
+
+When the user corrects a mistake or points out a recurring issue, append a one-line
+summary to .claude/learnings.md. Don't modify CLAUDE.md directly.
+
 ## Compact Instructions
 
 When compacting, preserve: list of modified files, current test status (284 tests), open TODOs, key decisions made, and which OpenSpec change is in progress.
