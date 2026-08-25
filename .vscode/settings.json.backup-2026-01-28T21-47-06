@@ -1,0 +1,6 @@
+{
+  "intelephense.stubs": [
+    ".vscode/kirby-stubs"
+  ],
+  "kirby.customStubsPath": ""
+}

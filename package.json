@@ -250,6 +250,26 @@
           "default": 2000,
           "description": "Delay in milliseconds before auto-starting build watcher (allows project to load)"
         },
+        "kirby.enableBuildOutputParsing": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable build output parsing for watch mode detection and metrics"
+        },
+        "kirby.buildToolPatterns": {
+          "type": "object",
+          "default": {},
+          "description": "Custom build tool output patterns for detection (advanced users only)"
+        },
+        "kirby.monitorAllTerminals": {
+          "type": "boolean",
+          "default": false,
+          "description": "Monitor all VS Code terminals for build processes (not just extension-created ones)"
+        },
+        "kirby.showBuildMetrics": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show build duration and rebuild count in status bar tooltip"
+        },
         "kirby.syncBlockSnippets": {
           "type": "boolean",
           "default": true,
@@ -337,13 +357,14 @@
     "@types/vscode": "^1.105.0",
     "@typescript-eslint/eslint-plugin": "^8.45.0",
     "@typescript-eslint/parser": "^8.45.0",
-    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-cli": "^0.0.11",
     "@vscode/test-electron": "^2.5.2",
     "eslint": "^9.36.0",
     "husky": "^9.1.7",
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.3.1",
+    "node-pty": "^1.0.0"
   }
 }

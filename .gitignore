@@ -5,4 +5,7 @@ node_modules
 *.vsix
 .augment/
 .env
-.vscode/kirby-stubs/
+
+# Claude Code — personal files
+.claude/settings.local.json
+.claude/local.md

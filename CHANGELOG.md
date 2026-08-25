@@ -29,6 +29,26 @@ All notable changes to the "Kirby CMS Developer Toolkit" extension will be docum
   - Security: URL validation and XSS protection for iframe content
   - Full test coverage for Panel detection and WebView lifecycle
 
+- **Enhanced Build Integration**: Intelligent output parsing for build processes with real-time status updates
+  - Hybrid PTY + Terminal architecture for output capture while maintaining interactive terminal
+  - Build output parsing for common build tools: Webpack 4/5, Vite 2/3, Tailwind CSS, esbuild, Parcel
+  - Automatic watch mode detection with dedicated "👁️ Watching" status indicator
+  - Real-time rebuild detection and tracking in watch mode
+  - Build metrics in status bar tooltip:
+    - Last build duration (e.g., "234ms" or "2.3s")
+    - Rebuild count in watch mode
+    - Time since last rebuild
+    - Detected build tool name
+  - New build states: WatchModeActive and Rebuilding for better status tracking
+  - Graceful fallback to timeout-based detection when output parsing unavailable
+  - New configuration settings:
+    - `kirby.enableBuildOutputParsing` (default: true) - Enable intelligent output parsing
+    - `kirby.showBuildMetrics` (default: true) - Display build metrics in tooltip
+    - `kirby.buildToolPatterns` (default: {}) - Custom pattern overrides for advanced users
+  - Automatic build tool detection from terminal output
+  - Buffer management for efficient parsing (100KB limit)
+  - Cross-platform support with platform-specific fallbacks
+
 - **Kirby API IntelliSense**: Intelligent autocompletion and inline documentation for Kirby CMS API
   - Automatic detection and integration with Intelephense PHP language server
   - PHP stub files for core Kirby classes: Page, Site, File, User, Kirby/App, Field
@@ -174,6 +194,7 @@ All notable changes to the "Kirby CMS Developer Toolkit" extension will be docum
 Added 10 new configuration options:
 
 **Blueprint/Template Sync:**
+
 - `kirby.enableBlueprintTemplateSync`: Enable/disable sync prompts (default: `true`)
 - `kirby.syncPromptBehavior`: Prompt behavior - `"ask"`, `"never"`, or `"always"` (default: `"ask"`)
 - `kirby.syncCreateController`: Auto-create controller when creating template from Blueprint (default: `false`)
@@ -181,6 +202,7 @@ Added 10 new configuration options:
 - `kirby.syncIgnoreFolders`: Array of folder patterns to exclude from sync detection (default: `[]`)
 
 **Frontend Build Integration:**
+
 - `kirby.enableBuildIntegration`: Enable/disable build integration (default: `true`)
 - `kirby.buildCommand`: Custom build command override (default: `""`)
 - `kirby.buildAutoStart`: Auto-start on workspace open (default: `false`)
@@ -319,18 +341,21 @@ Added 7 new configuration options:
 ## [0.2.1] - 2025-10-25
 
 ### Added
+
 - **License Compliance**: Bundled MIT License file for Kirby Blueprint schema
   - Complete license text now included at `src/schemas/LICENSE`
   - License properly copied to output directory during build
   - Full compliance with MIT License distribution requirements
 
 ### Changed
+
 - **Documentation**: Added disclaimer clarifying unofficial third-party status
   - README now includes note that extension is not affiliated with or endorsed by Kirby CMS
   - Updated LICENSE file to reference bundled schema license
   - Updated README to reference bundled license file instead of external link
 
 ### Fixed
+
 - **Issue #1**: Missing license file for bundled Blueprint schema
   - Previously only linked to external license
   - Now properly bundles complete license text with extension
@@ -339,17 +364,20 @@ Added 7 new configuration options:
 ## [0.2.0] - 2025-10-25
 
 ### Added
+
 - **Extension Icon**: Custom extension icon based on Kirby CMS branding
   - Hexagonal design inspired by official Kirby logo
   - Geometric symbol representing development tools
   - PNG format (256x256) optimized for VS Code marketplace
 
 ### Changed
+
 - **Blueprint Schema**: Updated from Kirby 4 to Kirby 5 Blueprint schema
   - Schema source: [bnomei/kirby-schema](https://github.com/bnomei/kirby-schema) (MIT licensed)
   - Provides latest field types and properties for Kirby 5
 
 ### Fixed
+
 - **Documentation**: Updated Known Issues section to better explain the `extends` property validation warning
   - Added clarification that this is an upstream schema limitation
   - Blueprints work correctly in Kirby despite this warning
@@ -360,6 +388,7 @@ Added 7 new configuration options:
 ### Initial MVP Release
 
 #### Added
+
 - **Type-Hint Injection**
   - Automatic PHPDoc type-hint injection when creating template or snippet files
   - Manual type-hint injection via `Kirby: Add Type Hints` command
@@ -380,6 +409,7 @@ Added 7 new configuration options:
   - Error notifications for missing snippet files
 
 #### Security & Quality
+
 - **Comprehensive Testing** (36 tests, all passing)
   - Unit tests for utility functions (kirbyProject, phpParser)
   - Security tests for path traversal protection
@@ -400,6 +430,7 @@ Added 7 new configuration options:
   - Strict TypeScript compilation
 
 #### Configuration
+
 - `kirby.autoInjectTypeHints`: Enable/disable automatic type-hint injection (default: true)
 - `kirby.typeHintVariables`: Customize variables in type-hint blocks (default: ["$page", "$site", "$kirby"])
 - `kirby.enableBlueprintValidation`: Enable/disable Blueprint validation (default: true)
@@ -407,6 +438,7 @@ Added 7 new configuration options:
 - `kirby.showSnippetCodeLens`: Show/hide CodeLens links (default: true)
 
 #### Technical
+
 - Kirby project detection via `site/` directory
 - Extension only activates in Kirby projects
 - TypeScript 5.9.3 with strict type checking

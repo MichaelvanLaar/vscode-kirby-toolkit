@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(npm run lint:*)",
+      "Bash(npm run compile:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run watch:*)",
+      "Bash(npm audit:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Edit(./.env)",
+      "Edit(./.env.*)",
+      "Edit(./secrets/**)",
+      "Edit(./.git/**)",
+      "Edit(./node_modules/**)",
+      "Edit(./dist/**)",
+      "Edit(./package-lock.json)",
+      "Edit(./.github/workflows/**)",
+      "Bash(rm -rf:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)"
+    ]
+  },
+  "env": {
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "50",
+    "MAX_THINKING_TOKENS": "10000",
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "16000",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "haiku"
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npm run lint -- --quiet 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}
