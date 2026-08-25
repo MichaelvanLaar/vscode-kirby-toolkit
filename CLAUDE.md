@@ -7,27 +7,27 @@
 
 | File | Purpose |
 |------|---------|
-| `.claude/release-checklist.md` | Release process checklist                                                                  |
-| `.claude/settings.json` | Claude Code permissions and hooks                                                          |
-| `.claude/skills/openspec-apply-change/SKILL.md` | Skill: implement tasks from an OpenSpec change                                             |
-| `.claude/skills/openspec-archive-change/SKILL.md` | Skill: finalize and archive a completed OpenSpec change                                    |
-| `.claude/skills/openspec-bulk-archive-change/SKILL.md` | Skill: archive multiple completed OpenSpec changes at once                                 |
-| `.claude/skills/openspec-continue-change/SKILL.md` | Skill: create the next artifact in an in-progress OpenSpec change                          |
-| `.claude/skills/openspec-explore/SKILL.md` | Skill: thinking-partner mode for exploring ideas before or during a change                 |
-| `.claude/skills/openspec-ff-change/SKILL.md` | Skill: fast-forward through all OpenSpec artifacts without stepping through each           |
-| `.claude/skills/openspec-new-change/SKILL.md` | Skill: start a new OpenSpec change with a structured step-by-step approach                 |
-| `.claude/skills/openspec-onboard/SKILL.md` | Skill: guided onboarding walkthrough for the OpenSpec workflow                             |
-| `.claude/skills/openspec-sync-specs/SKILL.md` | Skill: sync delta specs from a change to main specs without archiving                      |
-| `.claude/skills/openspec-verify-change/SKILL.md` | Skill: verify implementation matches change artifacts before archiving                     |
-| `eslint.config.mjs` | ESLint flat config with TypeScript rules                                                   |
-| `.github/workflows/claude-code-review.yml` | Automatic PR review by Claude                                                              |
-| `.github/workflows/claude.yml` | Claude automation via `@claude` in issues/PRs                                              |
-| `.github/workflows/test.yml` | CI: runs npm test on every push and PR                                                     |
-| `.gitignore` | Git ignore patterns                                                                        |
-| `.mcp.json` | MCP server config                                                                          |
-| `package.json` | Package metadata, dependencies, scripts                                                    |
-| `tsconfig.json` | TypeScript compiler config                                                                 |
-| `.vscode-test.mjs` | VS Code test runner config (test file glob + workspace folder)                             |
+| `.claude/release-checklist.md` | Release process checklist                                                                    |
+| `.claude/settings.json` | Claude Code permissions and hooks                                                            |
+| `.claude/skills/openspec-apply-change/SKILL.md` | Skill: implement tasks from an OpenSpec change                                               |
+| `.claude/skills/openspec-archive-change/SKILL.md` | Skill: finalize and archive a completed OpenSpec change                                      |
+| `.claude/skills/openspec-bulk-archive-change/SKILL.md` | Skill: archive multiple completed OpenSpec changes at once                                   |
+| `.claude/skills/openspec-continue-change/SKILL.md` | Skill: create the next artifact in an in-progress OpenSpec change                            |
+| `.claude/skills/openspec-explore/SKILL.md` | Skill: thinking-partner mode for exploring ideas before or during a change                   |
+| `.claude/skills/openspec-ff-change/SKILL.md` | Skill: fast-forward through all OpenSpec artifacts without stepping through each             |
+| `.claude/skills/openspec-new-change/SKILL.md` | Skill: start a new OpenSpec change with a structured step-by-step approach                   |
+| `.claude/skills/openspec-onboard/SKILL.md` | Skill: guided onboarding walkthrough for the OpenSpec workflow                               |
+| `.claude/skills/openspec-sync-specs/SKILL.md` | Skill: sync delta specs from a change to main specs without archiving                        |
+| `.claude/skills/openspec-verify-change/SKILL.md` | Skill: verify implementation matches change artifacts before archiving                       |
+| `eslint.config.mjs` | ESLint flat config with TypeScript rules                                                     |
+| `.github/workflows/claude-code-review.yml` | Automatic PR review by Claude                                                                |
+| `.github/workflows/claude.yml` | Claude automation via `@claude` in issues/PRs                                                |
+| `.github/workflows/test.yml` | CI: runs npm test on every push and PR                                                       |
+| `.gitignore` | Git ignore patterns                                                                          |
+| `.mcp.json` | MCP server config                                                                            |
+| `package.json` | Package metadata, dependencies, scripts                                                      |
+| `tsconfig.json` | TypeScript compiler config                                                                   |
+| `.vscode-test.mjs` | VS Code test runner config (test file glob + workspace folder)                               |
 
 ## Configuration Management
 
